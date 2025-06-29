@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ajay – Smart Notepad</title>
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #000000;
+      --accent-color: #4e9af1;
+      --card-color: #f0f0f0;
+    }
+    [data-theme="dark"] {
+      --bg-color: #121212;
+      --text-color: #f5f5f5;
+      --accent-color: #90caf9;
+      --card-color: #1e1e1e;
+    }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+    header, main {
+      padding: 1rem;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2em;
+      margin-bottom: 0.3em;
+    }
+    .toggle-theme {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      background-color: var(--accent-color);
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+    }
+    .skip-link {
+      position: absolute;
+      left: -999px;
+      top: auto;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+    }
+    .skip-link:focus {
+      position: static;
+      width: auto;
+      height: auto;
+      padding: 1rem;
+      background: var(--accent-color);
+      color: white;
+      z-index: 999;
+    }
+    .screen {
+      display: none;
+      padding: 1rem;
+    }
+    .active {
+      display: block;
+    }
+    button {
+      padding: 0.8rem 1.2rem;
+      margin: 0.5rem;
+      background-color: var(--accent-color);
+      border: none;
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #1976d2;
+    }
+    input, textarea, select {
+      width: 90%;
+      padding: 0.5rem;
+      margin: 0.5rem auto;
+      display: block;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      background: var(--card-color);
+      color: var(--text-color);
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: 2px solid var(--accent-color);
+    }
+    .note-list li {
+      list-style: none;
+      padding: 0.5rem;
+      margin: 0.5rem;
+      background: var(--card-color);
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .note-list li:hover {
+      background: var(--accent-color);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <button class="toggle-theme" onclick="toggleTheme()">Toggle Theme</button>
+  <header>
+    <h1>Ajay – Smart Notepad</h1>
+    <h3>Realizing Dreams Through the Touch of Technology</h3>
+    <p>A smart, fast, and accessible digital notepad for writing, organizing, and managing your thoughts with ease.</p>
+    <p><strong>Developed by:</strong> Ajay Thakur and S M Ripon</p>
+    <p><strong>Community:</strong> Accessible Resource</p>
+  </header>
+
+  <main id="main-content">
+    <div id="home" class="screen active">
+      <button onclick="showScreen('create')">Create a New Note</button>
+      <button onclick="showScreen('manage')">Manage Your Notes</button>
+    </div>
+
+    <div id="create" class="screen">
+      <input id="noteTitle" placeholder="Note Title">
+      <textarea id="noteContent" placeholder="Note Content" rows="8"></textarea>
+      <select id="noteCategory"></select>
+      <div id="newCategoryField" style="display:none;">
+        <input id="newCategoryInput" placeholder="Enter New Category">
+        <button onclick="addNewCategory()">Add Category</button>
+      </div>
+      <button onclick="document.getElementById('newCategoryField').style.display='block'">Create New Category</button>
+      <button onclick="saveNote()">Save</button>
+      <button onclick="showScreen('home')">Go Back</button>
+    </div>
+
+    <div id="manage" class="screen">
+      <ul id="noteList" class="note-list"></ul>
+      <button onclick="showScreen('home')">Go Back</button>
+    </div>
+
+    <div id="details" class="screen">
+      <h2 id="viewTitle"></h2>
+      <p id="viewContent"></p>
+      <button onclick="editNote()">Edit Note</button>
+      <button onclick="copyNote()">Copy</button>
+      <button onclick="shareNote()">Share</button>
+      <button onclick="deleteNote()">Delete</button>
+      <button onclick="downloadNote()">Download as Text</button>
+      <button onclick="showScreen('home')">Scriptment</button>
+      <button onclick="showScreen('manage')">Go Back</button>
+    </div>
+
+    <div id="edit" class="screen">
+      <input id="editTitle">
+      <textarea id="editContent" rows="8"></textarea>
+      <button onclick="saveEditedNote()">Save</button>
+      <button onclick="showScreen('details')">Go Back</button>
+    </div>
+  </main>
+
+  <script>
+    let currentNoteId = null;
+    let notes = JSON.parse(localStorage.getItem('ajay_notes') || '[]');
+    let categories = JSON.parse(localStorage.getItem('ajay_categories') || '[]');
+
+    function toggleTheme() {
+      document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? '' : 'dark';
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      if (id === 'manage') loadNoteList();
+      if (id === 'create') loadCategories();
+    }
+
+    function loadCategories() {
+      const select = document.getElementById('noteCategory');
+      select.innerHTML = '';
+      categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+      });
+    }
+
+    function addNewCategory() {
+      const newCat = document.getElementById('newCategoryInput').value;
+      if (newCat && !categories.includes(newCat)) {
+        categories.push(newCat);
+        localStorage.setItem('ajay_categories', JSON.stringify(categories));
+        loadCategories();
+        document.getElementById('newCategoryField').style.display = 'none';
+      }
+    }
+
+    function saveNote() {
+      const title = document.getElementById('noteTitle').value;
+      const content = document.getElementById('noteContent').value;
+      const category = document.getElementById('noteCategory').value;
+      const id = Date.now();
+      notes.push({ id, title, content, category });
+      localStorage.setItem('ajay_notes', JSON.stringify(notes));
+      showScreen('home');
+    }
+
+    function loadNoteList() {
+      const list = document.getElementById('noteList');
+      list.innerHTML = '';
+      notes.forEach(note => {
+        const li = document.createElement('li');
+        li.textContent = note.title;
+        li.onclick = () => viewNote(note.id);
+        list.appendChild(li);
+      });
+    }
+
+    function viewNote(id) {
+      const note = notes.find(n => n.id === id);
+      if (!note) return;
+      currentNoteId = id;
+      document.getElementById('viewTitle').textContent = note.title;
+      document.getElementById('viewContent').textContent = note.content;
+      showScreen('details');
+    }
+
+    function editNote() {
+      const note = notes.find(n => n.id === currentNoteId);
+      document.getElementById('editTitle').value = note.title;
+      document.getElementById('editContent').value = note.content;
+      showScreen('edit');
+    }
+
+    function saveEditedNote() {
+      const title = document.getElementById('editTitle').value;
+      const content = document.getElementById('editContent').value;
+      notes = notes.map(n => n.id === currentNoteId ? { ...n, title, content } : n);
+      localStorage.setItem('ajay_notes', JSON.stringify(notes));
+      viewNote(currentNoteId);
+    }
+
+    function copyNote() {
+      const note = notes.find(n => n.id === currentNoteId);
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(note.content).then(() => alert('Copied!')).catch(err => alert('Copy failed'));
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = note.content;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = 0;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+          alert('Copied!');
+        } catch {
+          alert('Copy failed');
+        }
+        document.body.removeChild(textarea);
+      }
+    }
+
+    function shareNote() {
+      const note = notes.find(n => n.id === currentNoteId);
+      if (navigator.share) {
+        navigator.share({ title: note.title, text: note.content });
+      } else {
+        alert('Sharing is not supported in this browser.');
+      }
+    }
+
+    function deleteNote() {
+      if (confirm('Are you sure you want to delete this note?')) {
+        notes = notes.filter(n => n.id !== currentNoteId);
+        localStorage.setItem('ajay_notes', JSON.stringify(notes));
+        showScreen('manage');
+      }
+    }
+
+    function downloadNote() {
+      const note = notes.find(n => n.id === currentNoteId);
+      const blob = new Blob([note.content], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${note.title}.txt`;
+      a.click();
+    }
+  </script>
+</body>
+</html>
