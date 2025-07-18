@@ -1,299 +1,394 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ajay – Smart Notepad</title>
-  <style>
-    :root {
-      --bg-color: #ffffff;
-      --text-color: #000000;
-      --accent-color: #4e9af1;
-      --card-color: #f0f0f0;
-    }
-    [data-theme="dark"] {
-      --bg-color: #121212;
-      --text-color: #f5f5f5;
-      --accent-color: #90caf9;
-      --card-color: #1e1e1e;
-    }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      transition: all 0.3s ease;
-    }
-    header, main {
-      padding: 1rem;
-      text-align: center;
-    }
-    h1 {
-      font-size: 2em;
-      margin-bottom: 0.3em;
-    }
-    .toggle-theme {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      background-color: var(--accent-color);
-      border: none;
-      border-radius: 5px;
-      color: #fff;
-    }
-    .skip-link {
-      position: absolute;
-      left: -999px;
-      top: auto;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
-    }
-    .skip-link:focus {
-      position: static;
-      width: auto;
-      height: auto;
-      padding: 1rem;
-      background: var(--accent-color);
-      color: white;
-      z-index: 999;
-    }
-    .screen {
-      display: none;
-      padding: 1rem;
-    }
-    .active {
-      display: block;
-    }
-    button {
-      padding: 0.8rem 1.2rem;
-      margin: 0.5rem;
-      background-color: var(--accent-color);
-      border: none;
-      color: white;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background-color 0.3s ease;
-    }
-    button:hover {
-      background-color: #1976d2;
-    }
-    input, textarea, select {
-      width: 90%;
-      padding: 0.5rem;
-      margin: 0.5rem auto;
-      display: block;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      background: var(--card-color);
-      color: var(--text-color);
-    }
-    input:focus, textarea:focus, select:focus {
-      outline: 2px solid var(--accent-color);
-    }
-    .note-list li {
-      list-style: none;
-      padding: 0.5rem;
-      margin: 0.5rem;
-      background: var(--card-color);
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .note-list li:hover {
-      background: var(--accent-color);
-      color: white;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ar music 🌍 generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- Base and Root Variables --- */
+        :root {
+            --font-family: 'Poppins', sans-serif;
+            
+            /* Light Theme */
+            --bg-color-light: #f4f7f9;
+            --text-color-light: #1a1a1a;
+            --card-bg-color-light: #ffffff;
+            --primary-color-light: #3498db;
+            --primary-hover-light: #2980b9;
+            --border-color-light: #e0e0e0;
+
+            /* Dark Theme */
+            --bg-color-dark: #121212;
+            --text-color-dark: #e0e0e0;
+            --card-bg-color-dark: #1e1e1e;
+            --primary-color-dark: #BB86FC;
+            --primary-hover-dark: #3700B3;
+            --border-color-dark: #2c2c2c;
+        }
+
+        body {
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* --- Theme Styles --- */
+        body.light-mode {
+            background-color: var(--bg-color-light);
+            color: var(--text-color-light);
+        }
+
+        body.dark-mode {
+            background-color: var(--bg-color-dark);
+            color: var(--text-color-dark);
+        }
+
+        .app-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 12px;
+            transition: background-color 0.3s;
+        }
+
+        body.light-mode .app-container {
+            background-color: var(--card-bg-color-light);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .app-container {
+            background-color: var(--card-bg-color-dark);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        /* --- Header --- */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        body.light-mode .app-header { border-color: var(--border-color-light); }
+        body.dark-mode .app-header { border-color: var(--border-color-dark); }
+
+        .app-title {
+            font-size: 1.5em;
+            margin: 0;
+        }
+
+        .theme-toggle-button {
+            background: none;
+            border: 2px solid;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 5px 6px;
+            transition: transform 0.2s, color 0.3s, border-color 0.3s;
+        }
+
+        body.light-mode .theme-toggle-button {
+            color: var(--text-color-light);
+            border-color: var(--border-color-light);
+        }
+        body.dark-mode .theme-toggle-button {
+            color: var(--text-color-dark);
+            border-color: var(--border-color-dark);
+        }
+
+        .theme-toggle-button:hover {
+            transform: scale(1.1);
+        }
+
+        /* --- Intro & Credit Sections --- */
+        .app-intro, .developer-credit {
+            text-align: center;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .developer-credit p {
+            margin: 5px 0;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        /* --- Form Elements --- */
+        .music-generator {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid;
+            font-family: var(--font-family);
+            font-size: 1em;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        body.light-mode select, body.light-mode textarea {
+            background-color: var(--bg-color-light);
+            color: var(--text-color-light);
+            border-color: var(--border-color-light);
+        }
+        body.dark-mode select, body.dark-mode textarea {
+            background-color: #2c2c2c;
+            color: var(--text-color-dark);
+            border-color: #333;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        /* --- Buttons --- */
+        .generate-button, .download-button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        body.light-mode .generate-button, body.light-mode .download-button {
+            background-color: var(--primary-color-light);
+            color: #fff;
+        }
+        body.light-mode .generate-button:hover, body.light-mode .download-button:hover {
+            background-color: var(--primary-hover-light);
+        }
+
+        body.dark-mode .generate-button, body.dark-mode .download-button {
+            background-color: var(--primary-color-dark);
+            color: #000;
+        }
+        body.dark-mode .generate-button:hover, body.dark-mode .download-button:hover {
+            background-color: var(--primary-hover-dark);
+            color: #fff;
+        }
+
+        .generate-button:active, .download-button:active {
+            transform: scale(0.98);
+        }
+
+        /* --- Audio Output & Loading --- */
+        .hidden {
+            display: none !important;
+        }
+
+        .audio-output-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid;
+        }
+
+        body.light-mode .audio-output-section { border-color: var(--border-color-light); }
+        body.dark-mode .audio-output-section { border-color: var(--border-color-dark); }
+
+        .loading-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        body.light-mode .spinner { border-left-color: var(--primary-color-light); }
+        body.dark-mode .spinner { border-left-color: var(--primary-color-dark); }
+
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #player-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #audio-player {
+            width: 100%;
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+            }
+            .app-container {
+                padding: 15px;
+            }
+            .app-title {
+                font-size: 1.2em;
+            }
+        }
+    </style>
 </head>
 <body>
-  <a href="#main-content" class="skip-link">Skip to main content</a>
-  <button class="toggle-theme" onclick="toggleTheme()">Toggle Theme</button>
-  <header>
-    <h1>Ajay – Smart Notepad</h1>
-    <h3>Realizing Dreams Through the Touch of Technology</h3>
-    <p>A smart, fast, and accessible digital notepad for writing, organizing, and managing your thoughts with ease.</p>
-    <p><strong>Developed by:</strong> Ajay Thakur and S M Ripon</p>
-    <p><strong>Community:</strong> Accessible Resource</p>
-  </header>
+    <div class="app-container">
+        <!-- Header: Theme Toggle -->
+        <header class="app-header">
+            <h1 class="app-title">ar music 🌍 generator</h1>
+            <button id="theme-toggle" class="theme-toggle-button">🌙</button>
+        </header>
 
-  <main id="main-content">
-    <div id="home" class="screen active">
-      <button onclick="showScreen('create')">Create a New Note</button>
-      <button onclick="showScreen('manage')">Manage Your Notes</button>
+        <!-- App Introduction -->
+        <section class="app-intro">
+            <p>ar music 🌍 generator is a simple AI-based tool that lets users generate beautiful music by writing only plain text. No editing skills required – just creativity!</p>
+        </section>
+
+        <!-- Developer Credit -->
+        <section class="developer-credit">
+            <p>Developed by S M Ripon</p>
+            <p>Powered by Accessible Resource Community</p>
+        </section>
+
+        <!-- Music Generation Form -->
+        <main class="music-generator">
+            <div class="form-group">
+                <label for="music-style">🎼 Choose Music Style:</label>
+                <select id="music-style" name="music-style">
+                    <option value="lo-fi-hip-hop">Lo-Fi Hip-Hop</option>
+                    <option value="edm">EDM</option>
+                    <option value="trap">Trap</option>
+                    <option value="jazz">Jazz</option>
+                    <option value="classical">Classical</option>
+                    <option value="ambient">Ambient</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="lyrics-input">🎵 Write your lyrics or music idea:</label>
+                <textarea id="lyrics-input" name="lyrics-input" rows="5" placeholder="e.g., a calm piano melody for studying..."></textarea>
+            </div>
+
+            <button id="generate-btn" class="generate-button">Generate Music</button>
+        </main>
+
+        <!-- Loading Indicator and Audio Player -->
+        <section id="audio-output" class="audio-output-section hidden">
+            <div id="loading-indicator" class="loading-indicator">
+                <div class="spinner"></div>
+                <p>Generating your music...</p>
+            </div>
+            <div id="player-controls" class="hidden">
+                <audio id="audio-player" controls></audio>
+                <a id="download-btn" class="download-button" href="#" download="generated_music.mp3">Download Track</a>
+            </div>
+        </section>
     </div>
 
-    <div id="create" class="screen">
-      <input id="noteTitle" placeholder="Note Title">
-      <textarea id="noteContent" placeholder="Note Content" rows="8"></textarea>
-      <select id="noteCategory"></select>
-      <div id="newCategoryField" style="display:none;">
-        <input id="newCategoryInput" placeholder="Enter New Category">
-        <button onclick="addNewCategory()">Add Category</button>
-      </div>
-      <button onclick="document.getElementById('newCategoryField').style.display='block'">Create New Category</button>
-      <button onclick="saveNote()">Save</button>
-      <button onclick="showScreen('home')">Go Back</button>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('theme-toggle');
+            const generateBtn = document.getElementById('generate-btn');
+            const musicStyleSelect = document.getElementById('music-style');
+            const lyricsInput = document.getElementById('lyrics-input');
+            const audioOutputSection = document.getElementById('audio-output');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const playerControls = document.getElementById('player-controls');
+            const audioPlayer = document.getElementById('audio-player');
+            const downloadBtn = document.getElementById('download-btn');
 
-    <div id="manage" class="screen">
-      <ul id="noteList" class="note-list"></ul>
-      <button onclick="showScreen('home')">Go Back</button>
-    </div>
+            // --- Theme Toggle Functionality ---
+            const applyTheme = (theme) => {
+                document.body.classList.remove('light-mode', 'dark-mode');
+                document.body.classList.add(theme);
+                themeToggle.textContent = theme === 'dark-mode' ? '☀️' : '🌙';
+                localStorage.setItem('theme', theme);
+            };
 
-    <div id="details" class="screen">
-      <h2 id="viewTitle"></h2>
-      <p id="viewContent"></p>
-      <button onclick="editNote()">Edit Note</button>
-      <button onclick="copyNote()">Copy</button>
-      <button onclick="shareNote()">Share</button>
-      <button onclick="deleteNote()">Delete</button>
-      <button onclick="downloadNote()">Download as Text</button>
-      <button onclick="showScreen('home')">Scriptment</button>
-      <button onclick="showScreen('manage')">Go Back</button>
-    </div>
+            themeToggle.addEventListener('click', () => {
+                const newTheme = document.body.classList.contains('dark-mode') ? 'light-mode' : 'dark-mode';
+                applyTheme(newTheme);
+            });
 
-    <div id="edit" class="screen">
-      <input id="editTitle">
-      <textarea id="editContent" rows="8"></textarea>
-      <button onclick="saveEditedNote()">Save</button>
-      <button onclick="showScreen('details')">Go Back</button>
-    </div>
-  </main>
+            // Load saved theme from localStorage or default to light-mode
+            const savedTheme = localStorage.getItem('theme') || 'light-mode';
+            applyTheme(savedTheme);
 
-  <script>
-    let currentNoteId = null;
-    let notes = JSON.parse(localStorage.getItem('ajay_notes') || '[]');
-    let categories = JSON.parse(localStorage.getItem('ajay_categories') || '[]');
 
-    function toggleTheme() {
-      document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? '' : 'dark';
-    }
+            // --- Music Generation Functionality ---
+            generateBtn.addEventListener('click', () => {
+                const selectedGenre = musicStyleSelect.value;
+                const userInput = lyricsInput.value; // Although not used in API URL, it's good practice to get it
 
-    function showScreen(id) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      if (id === 'manage') loadNoteList();
-      if (id === 'create') loadCategories();
-    }
+                if (!selectedGenre) {
+                    alert('Please choose a music style!');
+                    return;
+                }
 
-    function loadCategories() {
-      const select = document.getElementById('noteCategory');
-      select.innerHTML = '';
-      categories.forEach(cat => {
-        const opt = document.createElement('option');
-        opt.value = cat;
-        opt.textContent = cat;
-        select.appendChild(opt);
-      });
-    }
+                // 1. Prepare UI for loading
+                audioOutputSection.classList.remove('hidden');
+                playerControls.classList.add('hidden');
+                loadingIndicator.classList.remove('hidden');
+                audioPlayer.src = ''; // Clear previous audio src
 
-    function addNewCategory() {
-      const newCat = document.getElementById('newCategoryInput').value;
-      if (newCat && !categories.includes(newCat)) {
-        categories.push(newCat);
-        localStorage.setItem('ajay_categories', JSON.stringify(categories));
-        loadCategories();
-        document.getElementById('newCategoryField').style.display = 'none';
-      }
-    }
-
-    function saveNote() {
-      const title = document.getElementById('noteTitle').value;
-      const content = document.getElementById('noteContent').value;
-      const category = document.getElementById('noteCategory').value;
-      const id = Date.now();
-      notes.push({ id, title, content, category });
-      localStorage.setItem('ajay_notes', JSON.stringify(notes));
-      showScreen('home');
-    }
-
-    function loadNoteList() {
-      const list = document.getElementById('noteList');
-      list.innerHTML = '';
-      notes.forEach(note => {
-        const li = document.createElement('li');
-        li.textContent = note.title;
-        li.onclick = () => viewNote(note.id);
-        list.appendChild(li);
-      });
-    }
-
-    function viewNote(id) {
-      const note = notes.find(n => n.id === id);
-      if (!note) return;
-      currentNoteId = id;
-      document.getElementById('viewTitle').textContent = note.title;
-      document.getElementById('viewContent').textContent = note.content;
-      showScreen('details');
-    }
-
-    function editNote() {
-      const note = notes.find(n => n.id === currentNoteId);
-      document.getElementById('editTitle').value = note.title;
-      document.getElementById('editContent').value = note.content;
-      showScreen('edit');
-    }
-
-    function saveEditedNote() {
-      const title = document.getElementById('editTitle').value;
-      const content = document.getElementById('editContent').value;
-      notes = notes.map(n => n.id === currentNoteId ? { ...n, title, content } : n);
-      localStorage.setItem('ajay_notes', JSON.stringify(notes));
-      viewNote(currentNoteId);
-    }
-
-    function copyNote() {
-      const note = notes.find(n => n.id === currentNoteId);
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(note.content).then(() => alert('Copied!')).catch(err => alert('Copy failed'));
-      } else {
-        const textarea = document.createElement('textarea');
-        textarea.value = note.content;
-        textarea.style.position = 'fixed';
-        textarea.style.opacity = 0;
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-          document.execCommand('copy');
-          alert('Copied!');
-        } catch {
-          alert('Copy failed');
-        }
-        document.body.removeChild(textarea);
-      }
-    }
-
-    function shareNote() {
-      const note = notes.find(n => n.id === currentNoteId);
-      if (navigator.share) {
-        navigator.share({ title: note.title, text: note.content });
-      } else {
-        alert('Sharing is not supported in this browser.');
-      }
-    }
-
-    function deleteNote() {
-      if (confirm('Are you sure you want to delete this note?')) {
-        notes = notes.filter(n => n.id !== currentNoteId);
-        localStorage.setItem('ajay_notes', JSON.stringify(notes));
-        showScreen('manage');
-      }
-    }
-
-    function downloadNote() {
-      const note = notes.find(n => n.id === currentNoteId);
-      const blob = new Blob([note.content], { type: 'text/plain' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${note.title}.txt`;
-      a.click();
-    }
-  </script>
+                // 2. Construct API URL
+                const apiUrl = `https://mazmazika.com/generate.php?genre=${selectedGenre}`;
+                
+                // Note: Using window.location.href would navigate the user away.
+                // Fetch is the correct way to handle this in the background.
+                fetch(apiUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`Network response was not ok: ${response.statusText}`);
+                        }
+                        return response.blob(); // Get the audio data as a Blob
+                    })
+                    .then(blob => {
+                        // 3. Handle successful response
+                        const audioUrl = URL.createObjectURL(blob);
+                        
+                        audioPlayer.src = audioUrl;
+                        downloadBtn.href = audioUrl;
+                        
+                        // 4. Update UI to show player
+                        loadingIndicator.classList.add('hidden');
+                        playerControls.classList.remove('hidden');
+                    })
+                    .catch(error => {
+                        // 5. Handle errors
+                        console.error('Error generating music:', error);
+                        alert('Sorry, there was an error generating your music. Please try again later.');
+                        loadingIndicator.classList.add('hidden');
+                    });
+            });
+        });
+    </script>
 </body>
 </html>
