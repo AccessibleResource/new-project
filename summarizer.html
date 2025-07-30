@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced AI Summarizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.18/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.10/clipboard.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/toastify-js@1.12.0/src/toastify.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f7fa;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .media-player {
+            width: 100%;
+            max-height: 400px;
+            margin-bottom: 20px;
+            display: none;
+            border-radius: 8px;
+        }
+        .media-preview {
+            max-width: 100%;
+            max-height: 400px;
+            margin-bottom: 20px;
+            display: none;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .file-upload-btn, .action-btn {
+            background: #007bff;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .file-upload-btn:hover, .action-btn:hover {
+            background: #0056b3;
+        }
+        .action-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .action-btn.copied {
+            background: #28a745;
+        }
+        #fileInput {
+            display: none;
+        }
+        .summary-card {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+        .summary-content {
+            white-space: pre-wrap;
+            min-height: 100px;
+        }
+        .error {
+            color: #d32f2f;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background: #ffe6e6;
+            display: none;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+            color: #555;
+        }
+        .collapsible {
+            cursor: pointer;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 6px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: none;
+            width: 100%;
+            text-align: left;
+            font-size: 16px;
+        }
+        .collapsible[aria-expanded="true"]::after {
+            content: '▲';
+        }
+        .collapsible[aria-expanded="false"]::after {
+            content: '▼';
+        }
+        .collapsible-content {
+            display: none;
+            padding: 15px;
+            background: #f1f3f5;
+            border-radius: 6px;
+        }
+        .collapsible-content.active {
+            display: block;
+        }
+        .question-input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        .settings-section {
+            margin: 10px 0;
+        }
+        .settings-section select, .settings-section input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #555;
+        }
+        iframe {
+            width: 100%;
+            height: 400px;
+            border: none;
+            border-radius: 8px;
+        }
+        pre {
+            white-space: pre-wrap;
+            overflow-x: auto;
+            padding: 10px;
+            background: #f8f9fa;
+        }
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .action-buttons ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        h1, h3 {
+            color: #333;
+        }
+        .sound-toggle {
+            background: #ff9800;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .sound-toggle:hover {
+            background: #e68a00;
+        }
+        .voice-dictation-btn {
+            background: #4caf50;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .voice-dictation-btn:hover {
+            background: #388e3c;
+        }
+        .voice-dictation-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 role="heading" aria-level="1">Advanced AI Summarizer</h1>
+        <div role="region" aria-labelledby="settings-heading">
+            <button class="collapsible" id="settings-heading" aria-expanded="false" aria-controls="settings-content" role="button">Settings</button>
+            <div id="settings-content" class="collapsible-content" role="region" aria-labelledby="settings-heading">
+                <div class="settings-section">
+                    <label for="aiModel">Select an AI Model:</label>
+                    <select id="aiModel">
+                        <option value="gemini-1.0-flash">Gemini 1.0 Flash</option>
+                        <option value="gemini-1.0-pro">Gemini 1.0 Pro</option>
+                        <option value="gemini-1.5-flash" selected>Gemini 1.5 Flash</option>
+                        <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                        <option value="gemini-2.0-flash">Gemini 2.0 Flash</option>
+                        <option value="gemini-2.0-pro">Gemini 2.0 Pro</option>
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro</option>
+                    </select>
+                    <label for="summaryLang">Select Summary Language:</label>
+                    <select id="summaryLang">
+                        <option value="Afrikaans">Afrikaans</option>
+                        <option value="Albanian">Albanian</option>
+                        <option value="Amharic">Amharic</option>
+                        <option value="Arabic">Arabic</option>
+                        <option value="Armenian">Armenian</option>
+                        <option value="Azerbaijani">Azerbaijani</option>
+                        <option value="Basque">Basque</option>
+                        <option value="Belarusian">Belarusian</option>
+                        <option value="Bengali">Bengali</option>
+                        <option value="Bosnian">Bosnian</option>
+                        <option value="Bulgarian">Bulgarian</option>
+                        <option value="Catalan">Catalan</option>
+                        <option value="Cebuano">Cebuano</option>
+                        <option value="Chichewa">Chichewa</option>
+                        <option value="Chinese">Chinese</option>
+                        <option value="Corsican">Corsican</option>
+                        <option value="Croatian">Croatian</option>
+                        <option value="Czech">Czech</option>
+                        <option value="Danish">Danish</option>
+                        <option value="Dutch">Dutch</option>
+                        <option value="English" selected>English</option>
+                        <option value="Esperanto">Esperanto</option>
+                        <option value="Estonian">Estonian</option>
+                        <option value="Filipino">Filipino</option>
+                        <option value="Finnish">Finnish</option>
+                        <option value="French">French</option>
+                        <option value="Frisian">Frisian</option>
+                        <option value="Galician">Galician</option>
+                        <option value="Georgian">Georgian</option>
+                        <option value="German">German</option>
+                        <option value="Greek">Greek</option>
+                        <option value="Gujarati">Gujarati</option>
+                        <option value="Haitian Creole">Haitian Creole</option>
+                        <option value="Hausa">Hausa</option>
+                        <option value="Hebrew">Hebrew</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="Hmong">Hmong</option>
+                        <option value="Hungarian">Hungarian</option>
+                        <option value="Icelandic">Icelandic</option>
+                        <option value="Igbo">Igbo</option>
+                        <option value="Indonesian">Indonesian</option>
+                        <option value="Irish">Irish</option>
+                        <option value="Italian">Italian</option>
+                        <option value="Japanese">Japanese</option>
+                        <option value="Javanese">Javanese</option>
+                        <option value="Kannada">Kannada</option>
+                        <option value="Kazakh">Kazakh</option>
+                        <option value="Khmer">Khmer</option>
+                        <option value="Korean">Korean</option>
+                        <option value="Kurdish">Kurdish</option>
+                        <option value="Kyrgyz">Kyrgyz</option>
+                        <option value="Lao">Lao</option>
+                        <option value="Latin">Latin</option>
+                        <option value="Latvian">Latvian</option>
+                        <option value="Lithuanian">Lithuanian</option>
+                        <option value="Luxembourgish">Luxembourgish</option>
+                        <option value="Macedonian">Macedonian</option>
+                        <option value="Malagasy">Malagasy</option>
+                        <option value="Malay">Malay</option>
+                        <option value="Malayalam">Malayalam</option>
+                        <option value="Maltese">Maltese</option>
+                        <option value="Maori">Maori</option>
+                        <option value="Marathi">Marathi</option>
+                        <option value="Mongolian">Mongolian</option>
+                        <option value="Myanmar">Myanmar</option>
+                        <option value="Nepali">Nepali</option>
+                        <option value="Norwegian">Norwegian</option>
+                        <option value="Odia">Odia</option>
+                        <option value="Pashto">Pashto</option>
+                        <option value="Persian">Persian</option>
+                        <option value="Polish">Polish</option>
+                        <option value="Portuguese">Portuguese</option>
+                        <option value="Punjabi">Punjabi</option>
+                        <option value="Romanian">Romanian</option>
+                        <option value="Russian">Russian</option>
+                        <option value="Samoan">Samoan</option>
+                        <option value="Scots Gaelic">Scots Gaelic</option>
+                        <option value="Serbian">Serbian</option>
+                        <option value="Sesotho">Sesotho</option>
+                        <option value="Shona">Shona</option>
+                        <option value="Sindhi">Sindhi</option>
+                        <option value="Sinhala">Sinhala</option>
+                        <option value="Slovak">Slovak</option>
+                        <option value="Slovenian">Slovenian</option>
+                        <option value="Somali">Somali</option>
+                        <option value="Spanish">Spanish</option>
+                        <option value="Sundanese">Sundanese</option>
+                        <option value="Swahili">Swahili</option>
+                        <option value="Swedish">Swedish</option>
+                        <option value="Tajik">Tajik</option>
+                        <option value="Tamil">Tamil</option>
+                        <option value="Telugu">Telugu</option>
+                        <option value="Thai">Thai</option>
+                        <option value="Turkish">Turkish</option>
+                        <option value="Ukrainian">Ukrainian</option>
+                        <option value="Urdu">Urdu</option>
+                        <option value="Uzbek">Uzbek</option>
+                        <option value="Vietnamese">Vietnamese</option>
+                        <option value="Welsh">Welsh</option>
+                        <option value="Xhosa">Xhosa</option>
+                        <option value="Yiddish">Yiddish</option>
+                        <option value="Yoruba">Yoruba</option>
+                        <option value="Zulu">Zulu</option>
+                    </select>
+                    <label for="userName">Enter Your Name:</label>
+                    <input type="text" id="userName" placeholder="Your Name">
+                    <button id="soundToggle" class="sound-toggle" role="switch" aria-checked="true" onclick="toggleSound()">Play Sounds: On</button>
+                    <div class="control-buttons">
+                        <button class="action-btn" onclick="saveSettings()">Save</button>
+                        <button class="action-btn" onclick="cancelSettings()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="welcomeMessage" class="welcome-message">
+            Welcome to the Advanced AI Summarizer! Upload any video, audio, image, document, or code to get a detailed summary.
+        </div>
+        <section class="control-buttons">
+            <button class="file-upload-btn" onclick="document.getElementById('fileInput').click()">Attach a File</button>
+            <button id="removeBtn" style="display: none;" class="action-btn" onclick="removeMedia()">Remove File</button>
+            <input type="file" id="fileInput" accept="video/mp4,video/x-matroska,video/webm,video/avi,video/mpeg,video/ogv,audio/mpeg,audio/wav,audio/ogg,audio/flac,audio/aac,image/jpeg,image/png,image/gif,image/bmp,image/webp,image/svg+xml,application/pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/x-python,text/html,text/css,application/javascript,text/x-java-source,text/x-c++src,text/x-csrc,application/x-httpd-php,text/x-ruby,text/x-go,application/typescript,text/jsx,text/tsx,application/json,application/xml,text/yaml,text/x-yaml,text/x-sql,text/x-shellscript,text/x-bash,text/markdown,text/x-rsrc,text/x-csharp,text/x-kotlin,text/x-swift,text/x-rustsrc,text/x-lua,text/x-perl,text/x-matlab,application/x-ipynb+json,text/x-dart,text/x-scala,text/x-haskell,text/x-vb,text/x-fsharp,text/x-elixir,text/x-erlang">
+        </section>
+        <video id="videoPlayer" class="media-player" controls></video>
+        <audio id="audioPlayer" class="media-player" controls preload="none"></audio>
+        <img id="imagePreview" class="media-preview">
+        <iframe id="docPreview" class="media-preview"></iframe>
+        <pre id="codePreview" class="media-preview"></pre>
+        <button id="summarizeBtn" class="action-btn" onclick="summarizeMedia()" disabled>Summarize Content</button>
+        <div id="loading" class="loading"></div>
+        <div id="error" class="error"></div>
+        <div id="summaries"></div>
+    </div>
+
+    <script>
+        // API Configuration
+        const API_KEY = 'AIzaSyDYeLxp7Jp5qSypbVBPy9v_XYmz7Sc1qfs'; // For Flash models
+        const API_KEY_FOR_PROMODELS = 'AIzaSyC2Fsjk3yCRA8hDVYgg5LlMn4sxwoJJaWU'; // For Pro models
+        let selectedModel = 'gemini-1.5-flash';
+        let selectedLang = 'English';
+        let userName = '';
+        let currentFileUrl = null;
+        let summaryCounter = 0;
+        let isSoundEnabled = true;
+        let summarizingSound = null;
+        let responseSounds = {};
+
+        // Language code mapping
+        const languageCodeMap = {
+            'Afrikaans': 'af', 'Albanian': 'sq', 'Amharic': 'am', 'Arabic': 'ar', 'Armenian': 'hy',
+            'Azerbaijani': 'az', 'Basque': 'eu', 'Belarusian': 'be', 'Bengali': 'bn', 'Bosnian': 'bs',
+            'Bulgarian': 'bg', 'Catalan': 'ca', 'Cebuano': 'ceb', 'Chichewa': 'ny', 'Chinese': 'zh',
+            'Corsican': 'co', 'Croatian': 'hr', 'Czech': 'cs', 'Danish': 'da', 'Dutch': 'nl',
+            'English': 'en', 'Esperanto': 'eo', 'Estonian': 'et', 'Filipino': 'tl', 'Finnish': 'fi',
+            'French': 'fr', 'Frisian': 'fy', 'Galician': 'gl', 'Georgian': 'ka', 'German': 'de',
+            'Greek': 'el', 'Gujarati': 'gu', 'Haitian Creole': 'ht', 'Hausa': 'ha', 'Hebrew': 'he',
+            'Hindi': 'hi', 'Hmong': 'hmn', 'Hungarian': 'hu', 'Icelandic': 'is', 'Igbo': 'ig',
+            'Indonesian': 'id', 'Irish': 'ga', 'Italian': 'it', 'Japanese': 'ja', 'Javanese': 'jv',
+            'Kannada': 'kn', 'Kazakh': 'kk', 'Khmer': 'km', 'Korean': 'ko', 'Kurdish': 'ku',
+            'Kyrgyz': 'ky', 'Lao': 'lo', 'Latin': 'la', 'Latvian': 'lv', 'Lithuanian': 'lt',
+            'Luxembourgish': 'lb', 'Macedonian': 'mk', 'Malagasy': 'mg', 'Malay': 'ms', 'Malayalam': 'ml',
+            'Maltese': 'mt', 'Maori': 'mi', 'Marathi': 'mr', 'Mongolian': 'mn', 'Myanmar': 'my',
+            'Nepali': 'ne', 'Norwegian': 'no', 'Odia': 'or', 'Pashto': 'ps', 'Persian': 'fa',
+            'Polish': 'pl', 'Portuguese': 'pt', 'Punjabi': 'pa', 'Romanian': 'ro', 'Russian': 'ru',
+            'Samoan': 'sm', 'Scots Gaelic': 'gd', 'Serbian': 'sr', 'Sesotho': 'st', 'Shona': 'sn',
+            'Sindhi': 'sd', 'Sinhala': 'si', 'Slovak': 'sk', 'Slovenian': 'sl', 'Somali': 'so',
+            'Spanish': 'es', 'Sundanese': 'su', 'Swahili': 'sw', 'Swedish': 'sv', 'Tajik': 'tg',
+            'Tamil': 'ta', 'Telugu': 'te', 'Thai': 'th', 'Turkish': 'tr', 'Ukrainian': 'uk',
+            'Urdu': 'ur', 'Uzbek': 'uz', 'Vietnamese': 'vi', 'Welsh': 'cy', 'Xhosa': 'xh',
+            'Yiddish': 'yi', 'Yoruba': 'yo', 'Zulu': 'zu'
+        };
+
+        // Initialize audio elements
+        function initializeAudio(src, volume = 0.5, loop = false) {
+            const audio = new Audio();
+            if (src) audio.src = src;
+            audio.volume = volume;
+            audio.loop = loop;
+            audio.preload = 'auto';
+            return audio;
+        }
+
+        const toastSound = initializeAudio('sounds/toast.mp3', 0.5);
+        summarizingSound = initializeAudio('sounds/summarizing.mp3', 0.5, true);
+
+        // DOM Elements
+        const DOM = {
+            fileInput: document.getElementById('fileInput'),
+            videoPlayer: document.getElementById('videoPlayer'),
+            audioPlayer: document.getElementById('audioPlayer'),
+            imagePreview: document.getElementById('imagePreview'),
+            docPreview: document.getElementById('docPreview'),
+            codePreview: document.getElementById('codePreview'),
+            summarizeBtn: document.getElementById('summarizeBtn'),
+            removeBtn: document.getElementById('removeBtn'),
+            summariesDiv: document.getElementById('summaries'),
+            errorDiv: document.getElementById('error'),
+            loadingDiv: document.getElementById('loading'),
+            welcomeMessage: document.getElementById('welcomeMessage'),
+            aiModel: document.getElementById('aiModel'),
+            summaryLang: document.getElementById('summaryLang'),
+            userNameInput: document.getElementById('userName'),
+            settingsHeading: document.getElementById('settings-heading'),
+            settingsContent: document.getElementById('settings-content'),
+            soundToggle: document.getElementById('soundToggle')
+        };
+
+        // Supported file types
+        const supportedFiles = {
+            video: ['video/mp4', 'video/x-matroska', 'video/webm', 'video/avi', 'video/mpeg', 'video/ogv'],
+            audio: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/flac', 'audio/aac'],
+            image: ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp', 'image/svg+xml'],
+            document: ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+            code: ['text/x-python', 'text/html', 'text/css', 'application/javascript', 'text/x-java-source', 'text/x-c++src', 'text/x-csrc', 'application/x-httpd-php', 'text/x-ruby', 'text/x-go', 'application/typescript', 'text/jsx', 'text/tsx', 'application/json', 'application/xml', 'text/yaml', 'text/x-yaml', 'text/x-sql', 'text/x-shellscript', 'text/x-bash', 'text/markdown', 'text/x-rsrc', 'text/x-csharp', 'text/x-kotlin', 'text/x-swift', 'text/x-rustsrc', 'text/x-lua', 'text/x-perl', 'text/x-matlab', 'application/x-ipynb+json', 'text/x-dart', 'text/x-scala', 'text/x-haskell', 'text/x-vb', 'text/x-fsharp', 'text/x-elixir', 'text/x-erlang']
+        };
+
+        // File extension to MIME type mapping
+        const extensionToMime = {
+            '.py': 'text/x-python', '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript',
+            '.java': 'text/x-java-source', '.cpp': 'text/x-c++src', '.c': 'text/x-csrc', '.php': 'application/x-httpd-php',
+            '.rb': 'text/x-ruby', '.go': 'text/x-go', '.ts': 'application/typescript', '.jsx': 'text/jsx',
+            '.tsx': 'text/tsx', '.json': 'application/json', '.xml': 'application/xml', '.yaml': 'text/yaml',
+            '.yml': 'text/yaml', '.sql': 'text/x-sql', '.sh': 'text/x-shellscript', '.bash': 'text/x-bash',
+            '.md': 'text/markdown', '.r': 'text/x-rsrc', '.cs': 'text/x-csharp', '.kt': 'text/x-kotlin',
+            '.swift': 'text/x-swift', '.rs': 'text/x-rustsrc', '.lua': 'text/x-lua', '.pl': 'text/x-perl',
+            '.m': 'text/x-matlab', '.ipynb': 'application/x-ipynb+json', '.dart': 'text/x-dart',
+            '.scala': 'text/x-scala', '.hs': 'text/x-haskell', '.vb': 'text/x-vb', '.fs': 'text/x-fsharp',
+            '.ex': 'text/x-elixir', '.exs': 'text/x-elixir', '.erl': 'text/x-erlang',
+            '.txt': 'text/plain', '.doc': 'application/msword', '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            '.pdf': 'application/pdf'
+        };
+
+        // Load settings from local storage on page load
+        function loadSettings() {
+            const settings = JSON.parse(localStorage.getItem('summarizerSettings'));
+            if (settings && settings.userName) {
+                DOM.aiModel.value = settings.selectedModel || 'gemini-1.5-flash';
+                DOM.summaryLang.value = settings.selectedLang || 'English';
+                DOM.userNameInput.value = settings.userName || '';
+                DOM.soundToggle.setAttribute('aria-checked', settings.isSoundEnabled !== undefined ? settings.isSoundEnabled : true);
+                DOM.soundToggle.textContent = `Play Sounds: ${settings.isSoundEnabled !== undefined ? (settings.isSoundEnabled ? 'On' : 'Off') : 'On'}`;
+                selectedModel = DOM.aiModel.value;
+                selectedLang = DOM.summaryLang.value;
+                userName = DOM.userNameInput.value;
+                isSoundEnabled = settings.isSoundEnabled !== undefined ? settings.isSoundEnabled : true;
+                DOM.summarizeBtn.disabled = false;
+            } else {
+                DOM.summarizeBtn.disabled = true;
+                DOM.settingsContent.classList.add('active');
+                DOM.settingsHeading.setAttribute('aria-expanded', 'true');
+                showError('Please set up your settings before proceeding.');
+            }
+        }
+
+        // Initialize collapsible listeners
+        function initializeCollapsible() {
+            document.querySelectorAll('.collapsible').forEach(btn => {
+                btn.removeEventListener('click', handleCollapsibleClick);
+                btn.addEventListener('click', handleCollapsibleClick);
+            });
+        }
+
+        function handleCollapsibleClick(event) {
+            const btn = event.currentTarget;
+            const contentId = btn.getAttribute('aria-controls');
+            toggleCollapsible(contentId);
+        }
+
+        // Toggle collapsible content
+        function toggleCollapsible(contentId) {
+            const content = document.getElementById(contentId);
+            if (content) {
+                const isActive = content.classList.toggle('active');
+                const collapsible = content.previousElementSibling;
+                if (collapsible) {
+                    collapsible.setAttribute('aria-expanded', isActive);
+                }
+            }
+        }
+
+        // Toggle sound on/off
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            DOM.soundToggle.textContent = `Play Sounds: ${isSoundEnabled ? 'On' : 'Off'}`;
+            DOM.soundToggle.setAttribute('aria-checked', isSoundEnabled);
+            if (!isSoundEnabled) {
+                stopAllAudio();
+            }
+            showToast(`Sounds ${isSoundEnabled ? 'enabled' : 'disabled'}.`, 'info');
+        }
+
+        // Stop all audio playback
+        function stopAllAudio() {
+            if (summarizingSound && !summarizingSound.paused) {
+                summarizingSound.pause();
+                summarizingSound.currentTime = 0;
+            }
+            Object.values(responseSounds).forEach(audio => {
+                if (!audio.paused) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+            });
+        }
+
+        // File selection handler
+        DOM.fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                showError('No file selected.');
+                return;
+            }
+
+            if (file.size > 100 * 1024 * 1024) {
+                showError('File size exceeds 100MB limit.');
+                DOM.fileInput.value = '';
+                return;
+            }
+
+            resetMediaPlayers();
+            DOM.welcomeMessage.style.display = 'none';
+            DOM.removeBtn.style.display = 'inline-block';
+            DOM.summarizeBtn.disabled = !userName;
+
+            try {
+                if (currentFileUrl) URL.revokeObjectURL(currentFileUrl);
+                currentFileUrl = URL.createObjectURL(file);
+                const mimeType = file.type || extensionToMime[`.${file.name.split('.').pop().toLowerCase()}`] || 'text/plain';
+
+                if (supportedFiles.video.includes(mimeType)) {
+                    DOM.videoPlayer.src = currentFileUrl;
+                    DOM.videoPlayer.style.display = 'block';
+                } else if (supportedFiles.audio.includes(mimeType)) {
+                    DOM.audioPlayer.src = currentFileUrl;
+                    DOM.audioPlayer.load(); // Ensure audio is loaded
+                    DOM.audioPlayer.style.display = 'block';
+                } else if (supportedFiles.image.includes(mimeType)) {
+                    DOM.imagePreview.src = currentFileUrl;
+                    DOM.imagePreview.style.display = 'block';
+                } else if (supportedFiles.document.includes(mimeType)) {
+                    if (mimeType === 'application/pdf') {
+                        DOM.docPreview.src = currentFileUrl;
+                        DOM.docPreview.style.display = 'block';
+                    } else if (mimeType === 'text/plain') {
+                        const text = await file.text();
+                        DOM.codePreview.textContent = text;
+                        DOM.codePreview.style.display = 'block';
+                    }
+                } else if (supportedFiles.code.includes(mimeType)) {
+                    const text = await file.text();
+                    DOM.codePreview.textContent = text;
+                    DOM.codePreview.style.display = 'block';
+                } else {
+                    showError('Unsupported file type.');
+                    resetMediaPlayers();
+                    DOM.fileInput.value = '';
+                    DOM.summarizeBtn.disabled = true;
+                    DOM.removeBtn.style.display = 'none';
+                    DOM.welcomeMessage.style.display = 'block';
+                    return;
+                }
+                clearError();
+            } catch (error) {
+                showError(`Error loading file: ${error.message}`);
+                resetMediaPlayers();
+                DOM.fileInput.value = '';
+                DOM.summarizeBtn.disabled = true;
+                DOM.removeBtn.style.display = 'none';
+                DOM.welcomeMessage.style.display = 'block';
+            }
+        });
+
+        // Remove uploaded file
+        function removeMedia() {
+            DOM.fileInput.value = '';
+            resetMediaPlayers();
+            DOM.summarizeBtn.disabled = true;
+            DOM.removeBtn.style.display = 'none';
+            DOM.welcomeMessage.style.display = 'block';
+            if (currentFileUrl) {
+                URL.revokeObjectURL(currentFileUrl);
+                currentFileUrl = null;
+            }
+            clearError();
+            showToast('File removed successfully.', 'success');
+        }
+
+        // Reset media players
+        function resetMediaPlayers() {
+            ['videoPlayer', 'audioPlayer', 'imagePreview', 'docPreview', 'codePreview'].forEach(id => {
+                DOM[id].style.display = 'none';
+                if (DOM[id].tagName === 'PRE') {
+                    DOM[id].textContent = '';
+                } else {
+                    DOM[id].src = '';
+                    if (id === 'audioPlayer') {
+                        DOM.audioPlayer.pause();
+                        DOM.audioPlayer.currentTime = 0;
+                        DOM.audioPlayer.load(); // Reset audio player
+                    }
+                }
+            });
+        }
+
+        // Save settings to local storage
+        function saveSettings() {
+            selectedModel = DOM.aiModel.value;
+            selectedLang = DOM.summaryLang.value;
+            userName = DOM.userNameInput.value.trim();
+            if (!userName) {
+                showError('Please enter a valid name.');
+                return;
+            }
+            localStorage.setItem('summarizerSettings', JSON.stringify({
+                selectedModel,
+                selectedLang,
+                userName,
+                isSoundEnabled
+            }));
+            toggleCollapsible('settings-content');
+            DOM.summarizeBtn.disabled = false;
+            showToast('Settings saved successfully.', 'success');
+        }
+
+        // Cancel settings
+        function cancelSettings() {
+            const settings = JSON.parse(localStorage.getItem('summarizerSettings')) || {};
+            DOM.aiModel.value = settings.selectedModel || 'gemini-1.5-flash';
+            DOM.summaryLang.value = settings.selectedLang || 'English';
+            DOM.userNameInput.value = settings.userName || '';
+            DOM.soundToggle.setAttribute('aria-checked', settings.isSoundEnabled !== undefined ? settings.isSoundEnabled : true);
+            DOM.soundToggle.textContent = `Play Sounds: ${settings.isSoundEnabled !== undefined ? (settings.isSoundEnabled ? 'On' : 'Off') : 'On'}`;
+            toggleCollapsible('settings-content');
+            showToast('Settings unchanged.', 'info');
+        }
+
+        // Voice dictation handler
+        function startVoiceDictation(summaryId) {
+            const input = document.getElementById(`ask-input-${summaryId}`);
+            const button = document.getElementById(`voice-dictation-${summaryId}`);
+            if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+                showError('Speech recognition is not supported in this browser.');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = languageCodeMap[selectedLang] || 'en';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            button.textContent = 'Listening...';
+            button.disabled = true;
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                input.value = (input.value + ' ' + transcript).trim();
+                button.textContent = 'Voice Dictation';
+                button.disabled = false;
+                showToast('Voice input added to text box.', 'success');
+            };
+
+            recognition.onerror = (event) => {
+                showError(`Speech recognition error: ${event.error}`);
+                button.textContent = 'Voice Dictation';
+                button.disabled = false;
+            };
+
+            recognition.onend = () => {
+                button.textContent = 'Voice Dictation';
+                button.disabled = false;
+            };
+
+            recognition.start();
+        }
+
+        // Play response audio
+        async function playResponse(elementId) {
+            const button = document.querySelector(`button[data-response-id="${elementId}"]`);
+            if (!button) return;
+
+            // If the sound is playing, stop it
+            if (responseSounds[elementId] && !responseSounds[elementId].paused) {
+                responseSounds[elementId].pause();
+                responseSounds[elementId].currentTime = 0;
+                URL.revokeObjectURL(responseSounds[elementId].src);
+                delete responseSounds[elementId];
+                button.textContent = 'Play Response';
+                button.setAttribute('aria-label', 'Play response audio');
+                return;
+            }
+
+            button.textContent = 'Playing Response';
+            button.setAttribute('aria-label', 'Playing response audio');
+            button.disabled = true;
+
+            try {
+                const element = document.getElementById(elementId);
+                const text = element.textContent;
+                const encodedText = encodeURIComponent(text);
+                const langCode = languageCodeMap[selectedLang] || 'en';
+                const response = await axios.get(`https://techassistantforblind.com/modules/gtts.php?text=${encodedText}&lang=${langCode}`, {
+                    responseType: 'blob'
+                });
+                const audioBlob = response.data;
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                responseSounds[elementId] = initializeAudio(audioUrl, 0.5);
+                responseSounds[elementId].onended = () => {
+                    button.textContent = 'Play Response';
+                    button.setAttribute('aria-label', 'Play response audio');
+                    URL.revokeObjectURL(audioUrl);
+                    delete responseSounds[elementId];
+                    button.disabled = false;
+                };
+                responseSounds[elementId].onerror = () => {
+                    showError('Error playing audio response.');
+                    button.textContent = 'Play Response';
+                    button.setAttribute('aria-label', 'Play response audio');
+                    URL.revokeObjectURL(audioUrl);
+                    delete responseSounds[elementId];
+                    button.disabled = false;
+                };
+
+                if (isSoundEnabled) {
+                    await responseSounds[elementId].play();
+                }
+                button.textContent = 'Stop Response';
+                button.setAttribute('aria-label', 'Stop response audio');
+                button.disabled = false;
+            } catch (error) {
+                showError(`Error playing response: ${error.message}`);
+                button.textContent = 'Play Response';
+                button.setAttribute('aria-label', 'Play response audio');
+                button.disabled = false;
+            }
+        }
+
+        // Summarize media content
+        async function summarizeMedia() {
+            if (!userName) {
+                showError('Please set up everything in the settings and try again.');
+                return;
+            }
+
+            const file = DOM.fileInput.files[0];
+            if (!file) {
+                showError('Please select a file.');
+                return;
+            }
+
+            const summaryId = `summary-${summaryCounter++}`;
+            DOM.summariesDiv.insertAdjacentHTML('afterbegin', `
+                <div class="summary-card" id="${summaryId}">
+                    <p id="summaryresponse-${summaryId}" class="summary-content loading">AI is summarizing...</p>
+                </div>
+            `);
+
+            showLoading(true, 'Analyzing content...');
+            DOM.summarizeBtn.disabled = true;
+            if (isSoundEnabled) {
+                summarizingSound.play().catch(error => console.error('Error playing summarizing sound:', error));
+            }
+
+            try {
+                const base64Data = await fileToBase64(file);
+                const mimeType = file.type || extensionToMime[`.${file.name.split('.').pop().toLowerCase()}`] || 'text/plain';
+
+                const prompts = {
+                    video: `User name: ${userName}, language: ${selectedLang}, generate summary like chatting and in ${selectedLang} language.
+                    Provide a comprehensive summary of the video content in markdown format, including:
+                    - **Scene-by-Scene Breakdown**: Describe each major scene with timestamps.
+                    - **Visual Elements**: Detail colors, lighting, camera angles, and key objects.
+                    - **Audio Elements**: Analyze music, dialogue, sound effects, and their impact.
+                    - **Narrative and Themes**: Identify the storyline, themes, and intended message.
+                    - **Overall Mood and Tone**: Describe the emotional and atmospheric tone.
+                    - **Text and Subtitles**: Include any visible text or subtitles.
+                    - **Estimated Duration**: Provide the approximate length.
+                    - **Contextual Insights**: Suggest the intended audience and purpose.
+                    Ensure the summary is detailed, concise, and well-structured in markdown, avoiding copyrighted content.
+                    In the end of summary, request the user to ask follow-up questions by clicking the button below.`,
+                    audio: `User name: ${userName}, language: ${selectedLang}, generate summary like chatting and in ${selectedLang} language.
+                    Provide a comprehensive summary of the audio content in markdown format, including:
+                    - **Segment Breakdown**: Outline distinct audio segments with timings.
+                    - **Sound Types**: Describe music, dialogue, sound effects, and their roles.
+                    - **Content Analysis**: Summarize spoken content, lyrics, or key audio elements.
+                    - **Mood and Tone**: Analyze the emotional and atmospheric impact.
+                    - **Technical Aspects**: Note audio quality, clarity, and production style.
+                    - **Estimated Duration**: Provide the approximate length.
+                    - **Contextual Insights**: Suggest the intended audience and purpose.
+                    Ensure the summary is detailed, concise, and well-structured in markdown, avoiding copyrighted content.
+                    In the end of summary, request the user to ask follow-up questions by clicking the button below.`,
+                    image: `User name: ${userName}, language: ${selectedLang}, generate summary like chatting and in ${selectedLang} language.
+                    Provide a comprehensive summary of the image content in markdown format, including:
+                    - **Main Subjects**: Identify primary objects, people, or elements.
+                    - **Visual Composition**: Describe colors, lighting, perspective, and layout.
+                    - **Context and Purpose**: Analyze the intended message or context.
+                    - **Mood and Tone**: Describe the emotional impact or atmosphere.
+                    - **Text Elements**: Include any visible text or annotations.
+                    - **Technical Aspects**: Note resolution, style, or artistic techniques.
+                    Ensure the summary is detailed, concise, and well-structured in markdown.
+                    In the end of summary, request the user to ask follow-up questions by clicking the button below.`,
+                    document: `User name: ${userName}, language: ${selectedLang}, generate summary like chatting and in ${selectedLang} language.
+                    Provide a comprehensive summary of the document or code content in markdown format, including:
+                    - **Structure Overview**: Outline main sections, chapters, or code architecture.
+                    - **Key Content**: Summarize critical points, arguments, or functionality.
+                    - **Style and Tone**: Analyze writing style, tone, or coding conventions.
+                    - **Notable Elements**: Highlight unique formatting, syntax, or features.
+                    - **Purpose and Audience**: Identify the intended purpose and target audience.
+                    - **Technical Details**: For code, describe libraries, frameworks, or algorithms used.
+                    Ensure the summary is detailed, concise, and well-structured in markdown, avoiding copyrighted content.
+                    In the end of summary, request the user to ask follow-up questions by clicking the button below.`
+                };
+
+                let prompt;
+                if (supportedFiles.video.includes(mimeType)) prompt = prompts.video;
+                else if (supportedFiles.audio.includes(mimeType)) prompt = prompts.audio;
+                else if (supportedFiles.image.includes(mimeType)) prompt = prompts.image;
+                else if (supportedFiles.document.includes(mimeType) || supportedFiles.code.includes(mimeType)) prompt = prompts.document;
+                else throw new Error('Unsupported file type for summarization.');
+
+                const response = await fetchAPI({
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            { inline_data: { mime_type: mimeType, data: base64Data.split(',')[1] } }
+                        ]
+                    }],
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 8192, responseMimeType: 'text/plain' }
+                });
+
+                if (isSoundEnabled && !summarizingSound.paused) {
+                    summarizingSound.pause();
+                    summarizingSound.currentTime = 0;
+                }
+
+                const summary = response.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!summary) throw new Error('No summary received from API.');
+
+                const summaryElement = document.getElementById(`summaryresponse-${summaryId}`);
+                summaryElement.innerHTML = marked.parse(summary);
+                summaryElement.classList.remove('loading');
+
+                // Add More Actions and Ask More
+                summaryElement.insertAdjacentHTML('afterend', `
+                    <button class="collapsible" aria-expanded="false" aria-controls="actions-${summaryId}" role="button">More Actions</button>
+                    <div id="actions-${summaryId}" class="collapsible-content">
+                        <div class="action-buttons">
+                            <ul>
+                                <li><button class="copy-btn action-btn" data-clipboard-target="#summaryresponse-${summaryId}">Copy Summary</button></li>
+                                <li><button class="action-btn" data-response-id="summaryresponse-${summaryId}" onclick="playResponse('summaryresponse-${summaryId}')">Play Response</button></li>
+                                <li><button class="action-btn" onclick="downloadText('summaryresponse-${summaryId}')">Download Summary</button></li>
+                                <li><button class="action-btn" onclick="deleteSummary('${summaryId}')">Delete Summary</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <button class="collapsible" aria-expanded="false" aria-controls="ask-${summaryId}" role="button">Ask More</button>
+                    <div id="ask-${summaryId}" class="collapsible-content">
+                        <textarea id="ask-input-${summaryId}" class="question-input" placeholder="Ask for more details..."></textarea>
+                        <button id="voice-dictation-${summaryId}" class="voice-dictation-btn" onclick="startVoiceDictation('${summaryId}')">Voice Dictation</button>
+                        <button class="action-btn" onclick="askMore('${summaryId}')">Submit Question</button>
+                        <div id="askmorestatus-${summaryId}"></div>
+                    </div>
+                `);
+
+                initializeCollapsible();
+                new ClipboardJS(`#actions-${summaryId} .copy-btn`).on('success', handleCopySuccess).on('error', handleCopyError);
+                showToast('Summary generated successfully.', 'success');
+            } catch (error) {
+                if (isSoundEnabled && !summarizingSound.paused) {
+                    summarizingSound.pause();
+                    summarizingSound.currentTime = 0;
+                }
+                showError(`Error processing file: ${error.message}`);
+                document.getElementById(summaryId)?.remove();
+            } finally {
+                DOM.summarizeBtn.disabled = false;
+                showLoading(false);
+            }
+        }
+
+        // Ask more about the summary
+        async function askMore(summaryId) {
+            const input = document.getElementById(`ask-input-${summaryId}`);
+            const responseDiv = document.getElementById(`askmorestatus-${summaryId}`);
+            const question = input.value.trim();
+
+            if (!question) {
+                showError('Please enter a question.');
+                return;
+            }
+
+            try {
+                responseDiv.innerHTML = `
+                    <p>${userName} said</p>
+                    <p>${question}</p>
+                    <p id="ai-response-loading-${summaryId}" class="loading">AI is creating answer...</p>
+                `;
+                // Keep the collapsible open
+                const askContent = document.getElementById(`ask-${summaryId}`);
+                askContent.classList.add('active');
+                askContent.previousElementSibling.setAttribute('aria-expanded', 'true');
+
+                if (isSoundEnabled) {
+                    summarizingSound.play().catch(error => console.error('Error playing summarizing sound:', error));
+                }
+
+                const originalSummary = document.getElementById(`summaryresponse-${summaryId}`).textContent;
+                const response = await fetchAPI({
+                    contents: [{
+                        parts: [{
+                            text: `User name: ${userName}, language: ${selectedLang}, generate answer like chatting and in ${selectedLang} language.
+                            Based on the following summary:\n\n${originalSummary}\n\nAnswer the following question in markdown format with detailed insights, structured clearly, avoiding copyrighted content:\n${question}
+                            In the end of the answer, request the user to ask follow-up questions by clicking the button below.`
+                        }]
+                    }],
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 8192, responseMimeType: 'text/plain' }
+                });
+
+                if (isSoundEnabled && !summarizingSound.paused) {
+                    summarizingSound.pause();
+                    summarizingSound.currentTime = 0;
+                }
+
+                const answer = response.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!answer) throw new Error('No response received from API.');
+
+                const responseId = `ask-response-content-${summaryId}`;
+                responseDiv.innerHTML = `
+                    <p>${userName} said</p>
+                    <p>${question}</p>
+                    <p id="${responseId}" class="summary-content">${marked.parse(answer)}</p>
+                    <button class="collapsible" aria-expanded="false" aria-controls="ask-actions-${summaryId}" role="button">More Actions</button>
+                    <div id="ask-actions-${summaryId}" class="collapsible-content">
+                        <div class="action-buttons">
+                            <ul>
+                                <li><button class="copy-btn action-btn" data-clipboard-target="#${responseId}">Copy Answer</button></li>
+                                <li><button class="action-btn" data-response-id="${responseId}" onclick="playResponse('${responseId}')">Play Response</button></li>
+                                <li><button class="action-btn" onclick="downloadText('${responseId}')">Download Answer</button></li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                input.value = '';
+                initializeCollapsible();
+                new ClipboardJS(`#ask-actions-${summaryId} .copy-btn`).on('success', handleCopySuccess).on('error', handleCopyError);
+                showToast('Question answered successfully.', 'success');
+            } catch (error) {
+                if (isSoundEnabled && !summarizingSound.paused) {
+                    summarizingSound.pause();
+                    summarizingSound.currentTime = 0;
+                }
+                showError(`Error processing question: ${error.message}`);
+                responseDiv.innerHTML = '';
+            }
+        }
+
+        // Utility functions
+        async function fetchAPI(body) {
+            try {
+                const apiKey = selectedModel.includes('-pro') ? API_KEY_FOR_PROMODELS : API_KEY;
+                const response = await axios.post(
+                    `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`,
+                    body,
+                    { headers: { 'Content-Type': 'application/json' } }
+                );
+                return response.data;
+            } catch (error) {
+                throw new Error(error.response?.data?.error?.message || `API request failed: ${error.message}`);
+            }
+        }
+
+        function downloadText(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${elementId}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Text downloaded successfully.', 'success');
+        }
+
+        function deleteSummary(summaryId) {
+            const element = document.getElementById(summaryId);
+            if (element) {
+                // Stop any playing response audio
+                const responseId = `summaryresponse-${summaryId}`;
+                if (responseSounds[responseId] && !responseSounds[responseId].paused) {
+                    responseSounds[responseId].pause();
+                    responseSounds[responseId].currentTime = 0;
+                    URL.revokeObjectURL(responseSounds[responseId].src);
+                    delete responseSounds[responseId];
+                }
+                const askResponseId = `ask-response-content-${summaryId}`;
+                if (responseSounds[askResponseId] && !responseSounds[askResponseId].paused) {
+                    responseSounds[askResponseId].pause();
+                    responseSounds[askResponseId].currentTime = 0;
+                    URL.revokeObjectURL(responseSounds[askResponseId].src);
+                    delete responseSounds[askResponseId];
+                }
+                element.remove();
+                showToast('Summary deleted successfully.', 'success');
+            }
+        }
+
+        async function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64String = reader.result;
+                    if (base64String.length > 100 * 1024 * 1024 * 4 / 3) {
+                        reject(new Error('Encoded file exceeds 100MB limit after base64 encoding.'));
+                    } else {
+                        resolve(base64String);
+                    }
+                };
+                reader.onerror = () => reject(new Error('Failed to read file.'));
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function showLoading(show, message = '') {
+            DOM.loadingDiv.textContent = message;
+            DOM.loadingDiv.style.display = show ? 'block' : 'none';
+        }
+
+        function showError(message) {
+            DOM.errorDiv.textContent = message;
+            DOM.errorDiv.style.display = 'block';
+            showToast(message, 'error');
+            setTimeout(clearError, 5000);
+        }
+
+        function clearError() {
+            DOM.errorDiv.textContent = '';
+            DOM.errorDiv.style.display = 'none';
+        }
+
+        function showToast(message, type = 'info') {
+            const background = {
+                success: '#28a745',
+                error: '#dc3545',
+                info: '#007bff'
+            }[type];
+            if (isSoundEnabled) {
+                toastSound.play().catch(error => console.error('Error playing toast sound:', error));
+            }
+            Toastify({
+                text: message,
+                duration: 5000,
+                close: false,
+                gravity: 'bottom',
+                position: 'center',
+                backgroundColor: background,
+                stopOnFocus: true
+            }).showToast();
+        }
+
+        function handleCopySuccess(e) {
+            const btn = e.trigger;
+            const isSummary = btn.dataset.clipboardTarget.includes('summaryresponse');
+            btn.textContent = 'Copied';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = isSummary ? 'Copy Summary' : 'Copy Answer';
+                btn.classList.remove('copied');
+            }, 3000);
+            showToast('Text copied to clipboard!', 'success');
+            e.clearSelection();
+        }
+
+        function handleCopyError() {
+            showError('Failed to copy text. Please try again.');
+        }
+
+        // Initialize collapsible listeners and load settings on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeCollapsible();
+            loadSettings();
+        });
+    </script>
+</body>
+</html>

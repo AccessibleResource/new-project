@@ -3,390 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ar music 🌍 generator</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <title>AI Summarizer</title>
     <style>
-        /* --- Base and Root Variables --- */
-        :root {
-            --font-family: 'Poppins', sans-serif;
-            
-            /* Light Theme */
-            --bg-color-light: #f4f7f9;
-            --text-color-light: #1a1a1a;
-            --card-bg-color-light: #ffffff;
-            --primary-color-light: #3498db;
-            --primary-hover-light: #2980b9;
-            --border-color-light: #e0e0e0;
-
-            /* Dark Theme */
-            --bg-color-dark: #121212;
-            --text-color-dark: #e0e0e0;
-            --card-bg-color-dark: #1e1e1e;
-            --primary-color-dark: #BB86FC;
-            --primary-hover-dark: #3700B3;
-            --border-color-dark: #2c2c2c;
-        }
-
         body {
-            font-family: var(--font-family);
-            margin: 0;
-            padding: 20px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        /* --- Theme Styles --- */
-        body.light-mode {
-            background-color: var(--bg-color-light);
-            color: var(--text-color-light);
-        }
-
-        body.dark-mode {
-            background-color: var(--bg-color-dark);
-            color: var(--text-color-dark);
-        }
-
-        .app-container {
-            max-width: 600px;
+            font-family: Arial, sans-serif;
+            max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            border-radius: 12px;
-            transition: background-color 0.3s;
         }
-
-        body.light-mode .app-container {
-            background-color: var(--card-bg-color-light);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        body.dark-mode .app-container {
-            background-color: var(--card-bg-color-dark);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-        }
-
-        /* --- Header --- */
-        .app-header {
+        .tablist {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid;
-            padding-bottom: 15px;
+            gap: 10px;
             margin-bottom: 20px;
         }
-
-        body.light-mode .app-header { border-color: var(--border-color-light); }
-        body.dark-mode .app-header { border-color: var(--border-color-dark); }
-
-        .app-title {
-            font-size: 1.5em;
-            margin: 0;
-        }
-
-        .theme-toggle-button {
-            background: none;
-            border: 2px solid;
-            border-radius: 50%;
+        button[role="tab"] {
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
             cursor: pointer;
-            font-size: 1.2em;
-            padding: 5px 6px;
-            transition: transform 0.2s, color 0.3s, border-color 0.3s;
         }
-
-        body.light-mode .theme-toggle-button {
-            color: var(--text-color-light);
-            border-color: var(--border-color-light);
+        button[role="tab"][aria-selected="true"] {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
         }
-        body.dark-mode .theme-toggle-button {
-            color: var(--text-color-dark);
-            border-color: var(--border-color-dark);
-        }
-
-        .theme-toggle-button:hover {
-            transform: scale(1.1);
-        }
-
-        /* --- Intro & Credit Sections --- */
-        .app-intro, .developer-credit {
-            text-align: center;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-
-        .developer-credit p {
-            margin: 5px 0;
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-
-        /* --- Form Elements --- */
-        .music-generator {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        select, textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid;
-            font-family: var(--font-family);
-            font-size: 1em;
-            transition: border-color 0.3s, background-color 0.3s;
-        }
-
-        body.light-mode select, body.light-mode textarea {
-            background-color: var(--bg-color-light);
-            color: var(--text-color-light);
-            border-color: var(--border-color-light);
-        }
-        body.dark-mode select, body.dark-mode textarea {
-            background-color: #2c2c2c;
-            color: var(--text-color-dark);
-            border-color: #333;
-        }
-
-        textarea {
-            resize: vertical;
-        }
-
-        /* --- Buttons --- */
-        .generate-button, .download-button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        body.light-mode .generate-button, body.light-mode .download-button {
-            background-color: var(--primary-color-light);
-            color: #fff;
-        }
-        body.light-mode .generate-button:hover, body.light-mode .download-button:hover {
-            background-color: var(--primary-hover-light);
-        }
-
-        body.dark-mode .generate-button, body.dark-mode .download-button {
-            background-color: var(--primary-color-dark);
-            color: #000;
-        }
-        body.dark-mode .generate-button:hover, body.dark-mode .download-button:hover {
-            background-color: var(--primary-hover-dark);
-            color: #fff;
-        }
-
-        .generate-button:active, .download-button:active {
-            transform: scale(0.98);
-        }
-
-        /* --- Audio Output & Loading --- */
-        .hidden {
-            display: none !important;
-        }
-
-        .audio-output-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid;
-        }
-
-        body.light-mode .audio-output-section { border-color: var(--border-color-light); }
-        body.dark-mode .audio-output-section { border-color: var(--border-color-dark); }
-
-        .loading-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
+        .tabpanel {
+            display: none;
             padding: 20px;
+            border: 1px solid #ccc;
         }
-
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .tabpanel.active {
+            display: block;
         }
-        body.light-mode .spinner { border-left-color: var(--primary-color-light); }
-        body.dark-mode .spinner { border-left-color: var(--primary-color-dark); }
-
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        #player-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-        }
-
-        #audio-player {
+        iframe {
             width: 100%;
-        }
-
-        /* --- Responsive Design --- */
-        @media (max-width: 640px) {
-            body {
-                padding: 10px;
-            }
-            .app-container {
-                padding: 15px;
-            }
-            .app-title {
-                font-size: 1.2em;
-            }
+            height: 500px;
+            border: 1px solid #ccc;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header: Theme Toggle -->
-        <header class="app-header">
-            <h1 class="app-title">ar music 🌍 generator</h1>
-            <button id="theme-toggle" class="theme-toggle-button">🌙</button>
-        </header>
-
-        <!-- App Introduction -->
-        <section class="app-intro">
-            <p>ar music 🌍 generator is a simple AI-based tool that lets users generate beautiful music by writing only plain text. No editing skills required – just creativity!</p>
-        </section>
-
-        <!-- Developer Credit -->
-        <section class="developer-credit">
-            <p>Developed by S M Ripon</p>
-            <p>Powered by Accessible Resource Community</p>
-        </section>
-
-        <!-- Music Generation Form -->
-        <main class="music-generator">
-            <div class="form-group">
-                <label for="music-style">🎼 Choose Music Style:</label>
-                <select id="music-style" name="music-style">
-                    <option value="lo-fi-hip-hop">Lo-Fi Hip-Hop</option>
-                    <option value="edm">EDM</option>
-                    <option value="trap">Trap</option>
-                    <option value="jazz">Jazz</option>
-                    <option value="classical">Classical</option>
-                    <option value="ambient">Ambient</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="lyrics-input">🎵 Write your lyrics or music idea:</label>
-                <textarea id="lyrics-input" name="lyrics-input" rows="5" placeholder="e.g., a calm piano melody for studying..."></textarea>
-            </div>
-
-            <button id="generate-btn" class="generate-button">Generate Music</button>
-        </main>
-
-        <!-- Loading Indicator and Audio Player -->
-        <section id="audio-output" class="audio-output-section hidden">
-            <div id="loading-indicator" class="loading-indicator">
-                <div class="spinner"></div>
-                <p>Generating your music...</p>
-            </div>
-            <div id="player-controls" class="hidden">
-                <audio id="audio-player" controls></audio>
-                <a id="download-btn" class="download-button" href="#" download="generated_music.mp3">Download Track</a>
-            </div>
-        </section>
+    <h1>Summarizers</h1>
+<p>realizing the dreams through the technology.</p>
+<p>hi, this tool is developed by Sujan Rai and SM ripon at accessible resource.</p>
+    <div role="tablist" class="tablist">
+        <button role="tab" id="file-tab" aria-selected="true" aria-controls="file-summarizer-panel">Files Summarizer</button>
+        <button role="tab" id="yt-tab" aria-selected="false" aria-controls="youtube-summarizer-panel">YouTube Videos Summarizer</button>
+    </div>
+    <div id="file-summarizer-panel" class="tabpanel active" role="tabpanel" aria-labelledby="file-tab">
+        <iframe id="file-summarizer-iframe" src="summarizer.html"></iframe>
+    </div>
+    <div id="youtube-summarizer-panel" class="tabpanel" role="tabpanel" aria-labelledby="yt-tab">
+        <iframe id="youtube-summarizer-iframe" src="YouTube-summarizer.html"></iframe>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const themeToggle = document.getElementById('theme-toggle');
-            const generateBtn = document.getElementById('generate-btn');
-            const musicStyleSelect = document.getElementById('music-style');
-            const lyricsInput = document.getElementById('lyrics-input');
-            const audioOutputSection = document.getElementById('audio-output');
-            const loadingIndicator = document.getElementById('loading-indicator');
-            const playerControls = document.getElementById('player-controls');
-            const audioPlayer = document.getElementById('audio-player');
-            const downloadBtn = document.getElementById('download-btn');
+        // Tab switching functionality
+        const tabs = document.querySelectorAll('[role="tab"]');
+        const panels = document.querySelectorAll('[role="tabpanel"]');
 
-            // --- Theme Toggle Functionality ---
-            const applyTheme = (theme) => {
-                document.body.classList.remove('light-mode', 'dark-mode');
-                document.body.classList.add(theme);
-                themeToggle.textContent = theme === 'dark-mode' ? '☀️' : '🌙';
-                localStorage.setItem('theme', theme);
-            };
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+                panels.forEach(p => p.classList.remove('active'));
 
-            themeToggle.addEventListener('click', () => {
-                const newTheme = document.body.classList.contains('dark-mode') ? 'light-mode' : 'dark-mode';
-                applyTheme(newTheme);
-            });
-
-            // Load saved theme from localStorage or default to light-mode
-            const savedTheme = localStorage.getItem('theme') || 'light-mode';
-            applyTheme(savedTheme);
-
-
-            // --- Music Generation Functionality ---
-            generateBtn.addEventListener('click', () => {
-                const selectedGenre = musicStyleSelect.value;
-                const userInput = lyricsInput.value; // Although not used in API URL, it's good practice to get it
-
-                if (!selectedGenre) {
-                    alert('Please choose a music style!');
-                    return;
-                }
-
-                // 1. Prepare UI for loading
-                audioOutputSection.classList.remove('hidden');
-                playerControls.classList.add('hidden');
-                loadingIndicator.classList.remove('hidden');
-                audioPlayer.src = ''; // Clear previous audio src
-
-                // 2. Construct API URL
-                const apiUrl = `https://mazmazika.com/generate.php?genre=${selectedGenre}`;
-                
-                // Note: Using window.location.href would navigate the user away.
-                // Fetch is the correct way to handle this in the background.
-                fetch(apiUrl)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`Network response was not ok: ${response.statusText}`);
-                        }
-                        return response.blob(); // Get the audio data as a Blob
-                    })
-                    .then(blob => {
-                        // 3. Handle successful response
-                        const audioUrl = URL.createObjectURL(blob);
-                        
-                        audioPlayer.src = audioUrl;
-                        downloadBtn.href = audioUrl;
-                        
-                        // 4. Update UI to show player
-                        loadingIndicator.classList.add('hidden');
-                        playerControls.classList.remove('hidden');
-                    })
-                    .catch(error => {
-                        // 5. Handle errors
-                        console.error('Error generating music:', error);
-                        alert('Sorry, there was an error generating your music. Please try again later.');
-                        loadingIndicator.classList.add('hidden');
-                    });
+                tab.setAttribute('aria-selected', 'true');
+                const panelId = tab.getAttribute('aria-controls');
+                document.getElementById(panelId).classList.add('active');
             });
         });
     </script>
