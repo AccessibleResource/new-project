@@ -1,78 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Summarizer</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .tablist {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        button[role="tab"] {
-            padding: 10px 20px;
-            border: 1px solid #ccc;
-            background: #f9f9f9;
-            cursor: pointer;
-        }
-        button[role="tab"][aria-selected="true"] {
-            background: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
-        .tabpanel {
-            display: none;
-            padding: 20px;
-            border: 1px solid #ccc;
-        }
-        .tabpanel.active {
-            display: block;
-        }
-        iframe {
-            width: 100%;
-            height: 500px;
-            border: 1px solid #ccc;
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Social Media Video Downloader</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      padding: 2rem;
+      text-align: center;
+    }
+    input, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin: 0.5rem 0;
+      width: 90%;
+      max-width: 400px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #result {
+      margin-top: 1rem;
+      font-size: 1.1rem;
+      word-wrap: break-word;
+    }
+    a.download-link {
+      color: #007bff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <h1>Summarizers</h1>
-<p>realizing the dreams through the technology.</p>
-<p>hi, this tool is developed by Sujan Rai and SM ripon at accessible resource.</p>
-    <div role="tablist" class="tablist">
-        <button role="tab" id="file-tab" aria-selected="true" aria-controls="file-summarizer-panel">Files Summarizer</button>
-        <button role="tab" id="yt-tab" aria-selected="false" aria-controls="youtube-summarizer-panel">YouTube Videos Summarizer</button>
-    </div>
-    <div id="file-summarizer-panel" class="tabpanel active" role="tabpanel" aria-labelledby="file-tab">
-        <iframe id="file-summarizer-iframe" src="summarizer.html"></iframe>
-    </div>
-    <div id="youtube-summarizer-panel" class="tabpanel" role="tabpanel" aria-labelledby="yt-tab">
-        <iframe id="youtube-summarizer-iframe" src="YouTube-summarizer.html"></iframe>
-    </div>
+  <h2>Social Media Video Downloader</h2>
+  <input type="text" id="url" placeholder="Paste video URL here" />
+  <br />
+  <button onclick="downloadVideo()">Download</button>
+  <div id="result"></div>
 
-    <script>
-        // Tab switching functionality
-        const tabs = document.querySelectorAll('[role="tab"]');
-        const panels = document.querySelectorAll('[role="tabpanel"]');
+  <script>
+    async function downloadVideo() {
+      const urlInput = document.getElementById('url');
+      const resultDiv = document.getElementById('result');
+      const url = urlInput.value.trim();
+      resultDiv.innerHTML = '';
 
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                tabs.forEach(t => t.setAttribute('aria-selected', 'false'));
-                panels.forEach(p => p.classList.remove('active'));
+      if (!url) {
+        resultDiv.innerText = 'Please enter a video URL.';
+        return;
+      }
 
-                tab.setAttribute('aria-selected', 'true');
-                const panelId = tab.getAttribute('aria-controls');
-                document.getElementById(panelId).classList.add('active');
-            });
-        });
-    </script>
+      resultDiv.innerText = 'Loading... Please wait.';
+
+      try {
+        // এখানে proxy API URL দিন (আপনার হোস্ট করা proxy এর URL)
+        const proxyApi = 'https://your-proxy.vercel.app/proxy?url=';
+
+        const response = await fetch(proxyApi + encodeURIComponent(url));
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+
+        if (data && data.url) {
+          resultDiv.innerHTML = `<p>Download Link:</p><a class="download-link" href="${data.url}" target="_blank" rel="noopener noreferrer">Click here to download</a>`;
+        } else {
+          resultDiv.innerText = 'No video found or invalid response.';
+        }
+      } catch (error) {
+        resultDiv.innerText = 'Error: ' + error.message;
+      }
+    }
+  </script>
 </body>
 </html>
