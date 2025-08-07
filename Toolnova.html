@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2b6cb0">
     <title>ToolNova Blog</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon.png">
     <style>
         body {
             margin: 0;
@@ -11,9 +14,14 @@
             background-color: #f5f7fa;
             color: #2d3748;
             line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Header Styling */
+        body.dark {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+
         header {
             background: linear-gradient(135deg, #2b6cb0, #1a4971);
             color: white;
@@ -22,6 +30,10 @@
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
             position: relative;
             z-index: 10;
+        }
+
+        body.dark header {
+            background: linear-gradient(135deg, #4a5568, #2d3748);
         }
 
         header h1 {
@@ -44,28 +56,76 @@
             margin-right: auto;
         }
 
-        /* Main Content */
+        #themeToggle {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: #ffffff20;
+            border: none;
+            color: white;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        #themeToggle:hover {
+            background: #ffffff40;
+        }
+
         main {
             max-width: 1280px;
             margin: 2.5rem auto;
             padding: 0 1.5rem;
         }
 
-        /* Iframe Styling */
+        .iframe-container {
+            position: relative;
+        }
+
         .blog-iframe {
             width: 100%;
-            height: 80vh;
+            aspect-ratio: 16 / 9;
             border: none;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
             border-radius: 12px;
             transition: box-shadow 0.3s ease;
         }
 
+        body.dark .blog-iframe {
+            box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);
+        }
+
         .blog-iframe:hover {
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
         }
 
-        /* Responsive Design */
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 8px solid #e2e8f0;
+            border-top: 8px solid #2b6cb0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        body.dark .loader {
+            border: 8px solid #4a5568;
+            border-top: 8px solid #e2e8f0;
+        }
+
+        .loader.active {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
         @media (max-width: 768px) {
             header h1 {
                 font-size: 2rem;
@@ -73,10 +133,6 @@
 
             header p {
                 font-size: 1.1rem;
-            }
-
-            .blog-iframe {
-                height: 70vh;
             }
         }
 
@@ -95,9 +151,66 @@
     <header>
         <h1>ToolNova Blog</h1>
         <p>Explore the latest insights, tips, and updates from the world of technology!</p>
+        <button id="themeToggle" aria-label="Toggle theme">Toggle Theme</button>
     </header>
+    <main>
+        <div class="iframe-container">
+            <iframe class="blog-iframe" id="blogFrame" title="ToolNova Blog"></iframe>
+            <div class="loader active" id="loader"></div>
+        </div>
+    </main>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const blogFrame = document.getElementById('blogFrame');
+            const loader = document.getElementById('loader');
+            const themeToggle = document.getElementById('themeToggle');
+            const blogUrl = 'http://toolnovablog.blogspot.com';
 
-        <iframe class="blog-iframe" id="blogFrame" src="http://toolnovablog.blogspot.com" title="ToolNova Blog"></iframe>
+            // Lazy-load iframe
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        blogFrame.src = blogUrl;
+                        observer.unobserve(blogFrame);
+                    }
+                });
+            }, { threshold: 0.1 });
 
+            observer.observe(blogFrame);
+
+            // Hide loader on iframe load
+            blogFrame.addEventListener('load', () => {
+                loader.classList.remove('active');
+            });
+
+            // Handle iframe errors
+            blogFrame.addEventListener('error', () => {
+                loader.classList.remove('active');
+                blogFrame.contentWindow.document.body.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #e53e3e;">
+                        <h2>Failed to load the blog</h2>
+                        <p>Please try again later or check your connection.</p>
+                    </div>`;
+            });
+
+            // Theme toggle
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark');
+                localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+            });
+
+            // Apply saved theme
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark');
+            }
+
+            // Register service worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(reg => console.log('Service Worker registered', reg))
+                    .catch(err => console.error('Service Worker registration failed', err));
+            }
+        });
+    </script>
 </body>
 </html>
