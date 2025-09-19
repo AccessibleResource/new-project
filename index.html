@@ -1,372 +1,193 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ToolNova Next</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real time voice transcriber</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
-    :root {
-      --primary-color: #6a11cb;
-      --secondary-color: #2575fc;
-      --text-color: #f0f0f0;
-      --bg-color-light: #f5f7fa;
-      --bg-color-dark: #1a1a2e;
-      --card-color-light: #ffffff;
-      --card-color-dark: #2a2a45;
-      --shadow-light: 0 10px 20px rgba(0,0,0,0.1);
-      --shadow-dark: 0 10px 20px rgba(0,0,0,0.3);
-    }
-
-    body {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: linear-gradient(45deg, var(--bg-color-light), #e0eafc);
-      color: #333;
-      transition: background 0.5s ease-in-out, color 0.5s ease-in-out;
-      overflow-x: hidden;
-    }
-
-    body.dark-mode {
-      background: linear-gradient(45deg, var(--bg-color-dark), #162238);
-      color: var(--text-color);
-    }
-
-    .loader {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: var(--bg-color-dark);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
-    }
-
-    .loader.hidden {
-      opacity: 0;
-      visibility: hidden;
-    }
-    
-    .spinner {
-      width: 50px;
-      height: 50px;
-      border: 5px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: var(--primary-color);
-      animation: spin 1s ease-in-out infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-
-    header {
-      padding: 60px 20px;
-      text-align: center;
-      color: white;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      position: relative;
-      overflow: hidden;
-      border-bottom-left-radius: 50% 20%;
-      border-bottom-right-radius: 50% 20%;
-      animation: slideDown 1s ease-out;
-    }
-    
-    @keyframes slideDown {
-      from { transform: translateY(-100%); }
-      to { transform: translateY(0); }
-    }
-
-
-    .particle {
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 50%;
-        animation: float 25s infinite;
-        opacity: 0;
-    }
-
-    @keyframes float {
-        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-        100% { transform: translateY(-1000px) rotate(720deg); opacity: 0; }
-    }
-
-    .section {
-      padding: 40px 20px;
-      animation: fadeIn 1.5s ease-in-out;
-    }
-    
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    .tool-title {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: inherit;
-    }
-    
-    .tool-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 20px;
-      margin-bottom: 30px;
-      padding: 25px;
-      background: var(--card-color-light);
-      border-radius: 15px;
-      box-shadow: var(--shadow-light);
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    body.dark-mode .tool-row {
-      background: var(--card-color-dark);
-      box-shadow: var(--shadow-dark);
-    }
-
-    .tool-row::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 80%);
-        transform: scale(0);
-        transition: transform 0.5s ease;
-    }
-
-    .tool-row:hover::before {
-        transform: scale(2);
-    }
-    
-    .tool-row:hover {
-      transform: translateY(-10px) scale(1.02);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-    }
-
-    button {
-      padding: 12px 25px;
-      border: none;
-      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-      color: white;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.4s ease-in-out;
-      font-weight: 600;
-      position: relative;
-      overflow: hidden;
-      z-index: 1;
-    }
-
-    button::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(135deg, #ffffff, #f0f0f0);
-      transition: all 0.4s ease-in-out;
-      z-index: -1;
-      opacity: 0.2;
-    }
-    
-    button:hover::after {
-      left: 100%;
-    }
-
-    button:hover {
-      transform: scale(1.1);
-      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    }
-    
-    .info-bar {
-      display: flex;
-      gap: 30px;
-      justify-content: center;
-      align-items: center;
-      margin: 30px 0;
-      flex-wrap: wrap;
-      font-weight: 300;
-    }
-
-    .centered-buttons {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-top: 20px;
-    }
-  </style>
-</head>
-<body>
-  <div class="loader">
-    <div class="spinner"></div>
-  </div>
-  
-  <header>
-    <div id="particles-js"></div>
-    <p style="font-size: 1.3rem; font-weight: 300; margin-bottom: 10px; letter-spacing: 1px;">
-      Realizing Dreams Through the Touch of Technology
-    </p>
-    <h1 id="greeting" style="font-size: 3rem; font-weight: 700; text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">Welcome to ToolNova Next</h1>
-    <p>Created by S M Ripon and the team at Accessible Resource</p>
-    <p>We will continue to add new features and updates. If you face any issues, please let us know.</p>
-
-    <div class="centered-buttons">
-      <button onclick="openLink('https://t.me/shopnotamal')">Join Us on Telegram</button>
-      <button onclick="openLink('https://youtube.com/@accessibleresource?si=w8VRPo6GjV4R0RGA')">Join Us on YouTube</button>
-    </div>
-
-    <div class="info-bar">
-      <span id="currentTime">Time:</span>
-      <span id="currentDate">Date:</span>
-      <span id="batteryLevel">Battery:</span>
-    </div>
-  </header>
-  
-  <div class="section">
-    <div class="toggle-mode" style="display: flex; justify-content: center; margin-bottom: 40px;">
-      <button onclick="toggleMode()">Toggle Light/Dark Mode</button>
-    </div>
-
-    <div class="tool-row">
-      <span class="tool-title">TOOLNOVA BLOG</span>
-      <button onclick="openLink('Toolnova.html')">Open</button>
-    </div>
-
-    <div class="tool-row">
-      <span class="tool-title">I want to know</span>
-      <button onclick="openLink('https://accessibleresource.github.io/I-want-to-know/')">Open I want to know</button>
-    </div>
-
-    <div class="tool-row">
-      <span class="tool-title">User Favourite</span>
-      <button onclick="openLink('https://accessibleresource.github.io/User-favourite/')">Open User Favourite</button>
-    </div>
-
-    <div class="tool-row">
-      <span class="tool-title">Tool Fusion AI</span>
-      <button onclick="openLink('https://accessibleresource.github.io/ToolFusion-AI/')">Open Tool Fusion AI</button>
-    </div>
-
-    <div class="tool-row">
-      <span class="tool-title">Smart Utility Tool</span>
-      <button onclick="openLink('https://accessibleresource.github.io/Smart-Utility-Tool/')">Open Smart Utility Tool</button>
-    </div>
-
-    <div class="tool-row">
-      <span class="tool-title">Text Tool Zone</span>
-      <button onclick="openLink('https://accessibleresource.github.io/Text-Tools-Zone/')">Open Text Tool Zone</button>
-    </div>
-
-    <div class="tool-row">
-      <span class="tool-title">Gaming Tool</span>
-      <button onclick="openLink('https://accessibleresource.github.io/Accessible-Resource-Hub/')">Open Gaming Tool</button>
-    </div>
-
-    <div class="tool-row">
-      <span class="tool-title">Image Tool Half</span>
-      <button onclick="openLink('https://accessibleresource.github.io/Image-tool-half/')">Open Image Tool Half</button>
-    </div>
-
-    <div class="tool-row">
-      <span class="tool-title">About ToolNova Next</span>
-      <button onclick="openLink('https://accessibleresource.github.io/About/')">Open About ToolNova Next</button>
-    </div>
-
-    <div class="tool-row">
-      <span class="tool-title">Join us</span>
-      <button onclick="openLink('https://accessibleresource.github.io/Join-us/')">Open Join us</button>
-    </div>
-
-    <div class="tool-row">
-      <span class="tool-title">Send feedback</span>
-      <button onclick="openLink('https://accessibleresource.github.io/Feedback/')">Open Send feedback</button>
-    </div>
-  </div>
-
-  <script>
-    window.addEventListener('load', () => {
-      const loader = document.querySelector('.loader');
-      loader.classList.add('hidden');
-      createParticles();
-    });
-
-    function createParticles() {
-        const header = document.querySelector('header');
-        const particleCount = 50;
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.classList.add('particle');
-            particle.style.left = `${Math.random() * 100}%`;
-            particle.style.animationDuration = `${Math.random() * 15 + 10}s`;
-            particle.style.animationDelay = `${Math.random() * 5}s`;
-            particle.style.width = `${Math.random() * 3 + 2}px`;
-            particle.style.height = particle.style.width;
-            header.appendChild(particle);
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/genai": "https://esm.sh/@google/genai@^0.14.0",
+          "marked": "https://esm.sh/marked@^4.0.0"
         }
-    }
-
-    function updateTimeDateBattery() {
-      const now = new Date();
-      document.getElementById("currentTime").textContent = "Time: " + now.toLocaleTimeString();
-      document.getElementById("currentDate").textContent = "Date: " + now.toLocaleDateString();
-
-      if (navigator.getBattery) {
-        navigator.getBattery().then(battery => {
-          const level = Math.round(battery.level * 100);
-          document.getElementById("batteryLevel").textContent = "Battery: " + level + "%";
-        });
-      } else {
-        document.getElementById("batteryLevel").textContent = "Battery: N/A";
       }
-    }
+    </script>
+    <script type="module" crossorigin src="index-BKLfzFGB.js"></script>
+    <link rel="stylesheet" crossorigin href="index-DHYYMQMv.css">
+  </head>
+  <body>
+    <div class="app-container">
+      <header class="app-header">
+        <h1>Real time voice transcriber</h1>
+      </header>
+      <div class="main-content">
+        <div class="note-area">
+          <div class="tab-navigation-container">
+            <div class="tab-navigation" role="tablist" aria-label="Transcription view">
+              <button role="tab" id="tab-polished" aria-controls="panel-polished" aria-selected="true" class="tab-button active" data-tab="polished">Polished</button>
+              <button role="tab" id="tab-raw" aria-controls="panel-raw" aria-selected="false" class="tab-button" data-tab="raw">Raw</button>
+              <div class="active-tab-indicator"></div>
+            </div>
+          </div>
 
-    function openLink(url) {
-      window.open(url, '_blank');
-    }
+          <div class="note-content-wrapper">
+            <div
+              id="polishedNote"
+              role="tabpanel"
+              aria-labelledby="tab-polished"
+              class="note-content active"
+              contenteditable="true"
+              placeholder="Your polished notes will appear here..."
+            ></div>
+            <div
+              id="rawTranscription"
+              role="tabpanel"
+              aria-labelledby="tab-raw"
+              class="note-content"
+              contenteditable="true"
+              placeholder="Raw transcription will appear here..."
+            ></div>
+          </div>
+        </div>
 
-    function toggleMode() {
-      document.body.classList.toggle("dark-mode");
-      const toolRows = document.querySelectorAll('.tool-row');
-      toolRows.forEach(row => {
-          if(document.body.classList.contains('dark-mode')) {
-            row.style.background = 'var(--card-color-dark)';
-            row.style.boxShadow = 'var(--shadow-dark)';
-          } else {
-            row.style.background = 'var(--card-color-light)';
-            row.style.boxShadow = 'var(--shadow-light)';
+        <div class="recording-interface">
+          <div id="liveRecordingTitle" class="live-recording-title" style="display: none">
+            Recording
+          </div>
+          <canvas id="liveWaveformCanvas" style="display: none"></canvas>
+          <div id="liveRecordingTimerDisplay" class="live-recording-timer" style="display: none">
+            00:00.00
+          </div>
+
+          <p id="alerts" class="status-text" role="alert" aria-live="assertive">Ready to record</p>
+
+          <div class="recording-controls">
+            <button id="recordButton" class="record-button" title="Start/Stop Recording" aria-label="Start recording">
+              <div class="record-button-inner">
+                <i class="fas fa-microphone"></i>
+              </div>
+              <svg class="record-waves" viewBox="0 0 200 200">
+                <circle class="wave wave1" cx="100" cy="100" r="40" />
+                <circle class="wave wave2" cx="100" cy="100" r="70" />
+                <circle class="wave wave3" cx="100" cy="100" r="100" />
+              </svg>
+              <span class="record-text">Record</span>
+            </button>
+          </div>
+          <div class="header-actions">
+            <button id="moreActionsButton" class="more-actions-button" title="More Actions" aria-haspopup="true" aria-expanded="false" aria-controls="moreActionsMenu" style="display: none;">
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div id="moreActionsMenu" class="actions-menu" role="menu" aria-labelledby="moreActionsButton" style="display: none;">
+              <button role="menuitem" id="copyButton"><i class="fas fa-copy"></i> Copy</button>
+              <button role="menuitem" id="exportButton"><i class="fas fa-file-export"></i> Export</button>
+              <button role="menuitem" id="translateButton"><i class="fas fa-language"></i> Translate</button>
+              <div class="menu-divider"></div>
+              <button role="menuitem" id="newTranscriptionButton"><i class="fas fa-plus-circle"></i> New Transcription</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <dialog id="translateDialog">
+      <div class="dialog-header">
+        <h2>Translate Transcription</h2>
+        <button id="closeTranslateDialogButton" class="close-button" aria-label="Close dialog">&times;</button>
+      </div>
+      <div class="dialog-content">
+        <p>Translate your polished transcription into a different language.</p>
+        <div class="form-group">
+          <label for="languageSelect">Select a target language:</label>
+          <select id="languageSelect"></select>
+        </div>
+        <button id="doTranslateButton" class="dialog-action-button">Translate</button>
+        <div id="translationResultContainer" class="translation-result-container" style="display: none;">
+          <h3>Translated Text:</h3>
+          <div id="translationResult" class="translation-result"></div>
+          <div class="translation-actions">
+             <button id="copyTranslationButton" class="dialog-action-button-secondary"><i class="fas fa-copy"></i> Copy</button>
+             <button id="exportTranslationButton" class="dialog-action-button-secondary"><i class="fas fa-file-export"></i> Export</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const tabNav = document.querySelector(".tab-navigation");
+        if (!tabNav) return;
+
+        const tabButtons = tabNav.querySelectorAll(".tab-button");
+        const activeTabIndicator = tabNav.querySelector(".active-tab-indicator");
+        const noteContents = document.querySelectorAll(".note-content");
+
+        function setActiveTab(activeButton, skipAnimation = false) {
+          if (!activeButton || !activeTabIndicator) return;
+
+          tabButtons.forEach((btn) => {
+            btn.classList.remove("active");
+            btn.setAttribute("aria-selected", "false");
+          });
+          activeButton.classList.add("active");
+          activeButton.setAttribute("aria-selected", "true");
+
+          const tabName = activeButton.getAttribute("data-tab");
+          noteContents.forEach((content) => {
+            content.classList.remove("active");
+            content.hidden = true;
+          });
+
+          const activeContent = document.getElementById(tabName === 'raw' ? 'rawTranscription' : 'polishedNote');
+          if (activeContent) {
+            activeContent.classList.add("active");
+            activeContent.hidden = false;
           }
+
+          const originalTransition = activeTabIndicator.style.transition;
+          if (skipAnimation) {
+            activeTabIndicator.style.transition = "none";
+          } else {
+            activeTabIndicator.style.transition = "";
+          }
+
+          activeTabIndicator.style.left = `${activeButton.offsetLeft}px`;
+          activeTabIndicator.style.width = `${activeButton.offsetWidth}px`;
+
+          if (skipAnimation) {
+            requestAnimationFrame(() => {
+                activeTabIndicator.style.transition = originalTransition;
+            });
+          }
+        }
+
+        tabButtons.forEach((button) => {
+          button.addEventListener("click", (e) => {
+            setActiveTab(e.currentTarget);
+          });
+        });
+
+        const initiallyActiveButton = tabNav.querySelector(".tab-button.active");
+        if (initiallyActiveButton) {
+          setTimeout(() => setActiveTab(initiallyActiveButton, true), 0);
+        }
+
+        window.addEventListener("resize", () => {
+          requestAnimationFrame(() => {
+            const currentActiveButton = tabNav.querySelector(".tab-button.active");
+            if (currentActiveButton) {
+              setActiveTab(currentActiveButton, true);
+            }
+          });
+        });
       });
-    }
-
-    function setGreeting() {
-      const hour = new Date().getHours();
-      let greet = "Good Evening";
-      if (hour < 12) greet = "Good Morning";
-      else if (hour < 18) greet = "Good Afternoon";
-
-      document.getElementById("greeting").textContent = `${greet}! Welcome to ToolNova Next`;
-    }
-
-    setGreeting();
-    updateTimeDateBattery();
-    setInterval(updateTimeDateBattery, 30000);
-  </script>
+    </script>
 </body>
 </html>
