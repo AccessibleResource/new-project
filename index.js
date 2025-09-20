@@ -1,8 +1,8 @@
 import fetch from 'node-fetch';
 import { URL } from 'url';
-import { createLogger } from 'winston'; // or any logging library
+import { createLogger } from 'winston';
 
-const logger = createLogger({ /* config */ });
+const logger = createLogger({});
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -15,7 +15,6 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'No URL provided' });
   }
 
-  // Validate URL
   try {
     new URL(videoUrl);
     if (!videoUrl.startsWith('http')) {
@@ -27,7 +26,7 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(`https://allsocial.onrender.com/?url=${encodeURIComponent(videoUrl)}`, {
-      timeout: 5000 // Add timeout
+      timeout: 500000
     });
     
     if (!response.ok) {
@@ -36,7 +35,7 @@ export default async function handler(req, res) {
     }
     
     const data = await response.json();
-    res.setHeader('Access-Control-Allow-Origin', process.env.ALLOWED_ORIGINS || 'https://yourdomain.com');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     return res.status(200).json(data);
 
   } catch (error) {
