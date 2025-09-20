@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Real time voice transcriber</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.gstatic" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
@@ -19,8 +19,8 @@
         }
       }
     </script>
-    <script type="module" crossorigin src="index-BKLfzFGB.js"></script>
-    <link rel="stylesheet" crossorigin href="index-DHYYMQMv.css">
+    <script type="module" crossorigin src="index-B3x5Abyb.js"></script>
+    <link rel="stylesheet" crossorigin href="index-DwDzjJAW.css">
   </head>
   <body>
     <div class="app-container">
@@ -31,8 +31,8 @@
         <div class="note-area">
           <div class="tab-navigation-container">
             <div class="tab-navigation" role="tablist" aria-label="Transcription view">
-              <button role="tab" id="tab-polished" aria-controls="panel-polished" aria-selected="true" class="tab-button active" data-tab="polished">Polished</button>
-              <button role="tab" id="tab-raw" aria-controls="panel-raw" aria-selected="false" class="tab-button" data-tab="raw">Raw</button>
+              <button role="tab" id="tab-polished" aria-controls="polishedNote" aria-selected="true" class="tab-button active" data-tab="polished">Polished</button>
+              <button role="tab" id="tab-raw" aria-controls="rawTranscription" aria-selected="false" class="tab-button" data-tab="raw">Raw</button>
               <div class="active-tab-indicator"></div>
             </div>
           </div>
@@ -68,29 +68,32 @@
 
           <p id="alerts" class="status-text" role="alert" aria-live="assertive">Ready to record</p>
 
-          <div class="recording-controls">
-            <button id="recordButton" class="record-button" title="Start/Stop Recording" aria-label="Start recording">
-              <div class="record-button-inner">
-                <i class="fas fa-microphone"></i>
+          <div class="footer-controls-wrapper">
+            <div class="action-placeholder"></div>
+            <div class="recording-controls">
+              <button id="recordButton" class="record-button" title="Start/Stop Recording" aria-label="Start recording">
+                <div class="record-button-inner">
+                  <i class="fas fa-microphone"></i>
+                </div>
+                <svg class="record-waves" viewBox="0 0 200 200">
+                  <circle class="wave wave1" cx="100" cy="100" r="40" />
+                  <circle class="wave wave2" cx="100" cy="100" r="70" />
+                  <circle class="wave wave3" cx="100" cy="100" r="100" />
+                </svg>
+                <span class="record-text">Record</span>
+              </button>
+            </div>
+            <div class="footer-actions">
+              <button id="moreActionsButton" class="more-actions-button" title="More Actions" aria-haspopup="true" aria-expanded="false" aria-controls="moreActionsMenu" style="display: none;">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <div id="moreActionsMenu" class="actions-menu" role="menu" aria-labelledby="moreActionsButton" style="display: none;">
+                <button role="menuitem" id="copyButton"><i class="fas fa-copy"></i> Copy</button>
+                <button role="menuitem" id="exportButton"><i class="fas fa-file-export"></i> Export</button>
+                <button role="menuitem" id="translateButton"><i class="fas fa-language"></i> Translate</button>
+                <div class="menu-divider"></div>
+                <button role="menuitem" id="newTranscriptionButton"><i class="fas fa-plus-circle"></i> New Transcription</button>
               </div>
-              <svg class="record-waves" viewBox="0 0 200 200">
-                <circle class="wave wave1" cx="100" cy="100" r="40" />
-                <circle class="wave wave2" cx="100" cy="100" r="70" />
-                <circle class="wave wave3" cx="100" cy="100" r="100" />
-              </svg>
-              <span class="record-text">Record</span>
-            </button>
-          </div>
-          <div class="header-actions">
-            <button id="moreActionsButton" class="more-actions-button" title="More Actions" aria-haspopup="true" aria-expanded="false" aria-controls="moreActionsMenu" style="display: none;">
-              <i class="fas fa-ellipsis-v"></i>
-            </button>
-            <div id="moreActionsMenu" class="actions-menu" role="menu" aria-labelledby="moreActionsButton" style="display: none;">
-              <button role="menuitem" id="copyButton"><i class="fas fa-copy"></i> Copy</button>
-              <button role="menuitem" id="exportButton"><i class="fas fa-file-export"></i> Export</button>
-              <button role="menuitem" id="translateButton"><i class="fas fa-language"></i> Translate</button>
-              <div class="menu-divider"></div>
-              <button role="menuitem" id="newTranscriptionButton"><i class="fas fa-plus-circle"></i> New Transcription</button>
             </div>
           </div>
         </div>
